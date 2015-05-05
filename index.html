@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script type="text/javascript">
+        window.onload = function() {
+
+            var boardWidth = 10;
+            var boardHeight = 20;
+            var maxPieceHeight = 2;
+            var time = Date.now();
+            var increment = 900;
+            var steps = 0;
+
+            var blockSize = 40;
+
+            var canvas = document.getElementById("canvas");
+            canvas.width = blockSize * boardWidth;
+            canvas.height = blockSize * (boardHeight + maxPieceHeight);
+            window.context = canvas.getContext("2d");
+
+            var matrix = [];
+
+            var loadEmptyBoard = function() {
+                for(var y = 0; y < boardHeight; y++) {
+                    matrix.push([]);
+                    for(var x = 0; x < boardWidth; x++) {
+                        matrix[y].push(0);
+                    }
+                }
+            };
+
+            var coordinate = function (y, x) {
+                this.y = y;
+                this.x = x;
+            };
+
+            var piece = {
+                x: 0,
+                y: 0,
+                coordinates: []
+            };
+
+            var PIECES = {
+                square: [new coordinate(0,0), new coordinate(0,1), new coordinate(1,0), new coordinate(1,1)],
+                rightL: [new coordinate(0,0), new coordinate(1,0) ,new coordinate(2,0), new coordinate(2,1)],
+                leftL:  [new coordinate(0,1), new coordinate(1,1), new coordinate(2,1), new coordinate(2,0)],
+                line:   [new coordinate(0,0), new coordinate(1,0), new coordinate(2,0), new coordinate(3,0)]
+            };
+
+            var generateNextPieceIfAppropriate = function() {
+                var possibilities = Object.keys(PIECES);
+
+                if(steps % 3 === 0) {
+                    piece.coordinates = PIECES[possibilities[Math.floor(Math.random() * possibilities.length)]];
+                    var pieceWidth = piece.coordinates.reduce(function(prev, curr) { return Math.max(prev, curr.x); }, 0);
+                    piece.x = Math.floor(Math.random() * (boardWidth - pieceWidth));
+                    for(var i = 0; i < piece.coordinates.length; i++) {
+                        
+                    }
+//                    console.log(piece);
+//                    console.log(piece.x);
+//                    canvas.
+                }
+            };
+
+            var game = function() {
+                window.setTimeout(function() {
+                    time = Date.now();
+                    steps++;
+                    generateNextPieceIfAppropriate();
+                    game();
+                }, increment);
+            };
+
+            loadEmptyBoard();
+//            console.log(matrix);
+            game();
+        };
+    </script>
+</head>
+<body>
+    <canvas id="canvas">
+
+    </canvas>
+</body>
+</html>
