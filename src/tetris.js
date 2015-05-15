@@ -81,7 +81,7 @@ window.onload = function() {
                     movePieceRight();
                     break;
                 case 40:
-                    movePieceFasterDownwards();
+                    movePieceDownwards();
                     break;
                 case 32:
                     dropPiece();
@@ -232,9 +232,11 @@ window.onload = function() {
     // -------------- PIECE MOVEMENT METHODS --------------
 
     var movePieceDownwards = function() {
-        clearPiece();
-        piece.y++;
-        drawPiece();
+        if(!pieceHasReachedAnEnd("bottom")) {
+            clearPiece();
+            piece.y++;
+            drawPiece();
+        }
     };
 
     var movePieceLeft = function() {
@@ -253,19 +255,10 @@ window.onload = function() {
         }
     };
 
-    var movePieceFasterDownwards = function() {
-        if(!pieceHasReachedAnEnd("bottom")) {
-            clearPiece();
-            piece.y++;
-            drawPiece();
-        }
-    };
-
-    var DROPPING = false;
-
     var dropPiece = function() {
-        if(DROPPING)
         while(!pieceHasReachedAnEnd("bottom")) {
+            // console.log('!pieceHasReachedAnEnd("bottom") is TRUE');
+            // console.log(JSON.stringify(piece));
             clearPiece();
             piece.y++;
             drawPiece();
@@ -295,8 +288,8 @@ window.onload = function() {
     // -------------- SPACE VALIDATION METHODS --------------
 
     var spaceAtCoordinatesHasBlockingElement = function(y, x) {
-        console.log(y >= matrix.length);
-        return x < 0 || x >= boardWidth || y >= matrix.length || matrix[y][x] === STATIONARY_PIECE_MARKER;
+        // console.log(y >= matrix.length);
+        return x < 0 || x >= boardWidth || y >= boardHeight || matrix[y][x] === STATIONARY_PIECE_MARKER;
     };
 
     // -------------- PAUSE FUNCTIONALITY METHODS --------------
