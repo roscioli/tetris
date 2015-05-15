@@ -38,6 +38,8 @@ window.onload = function() {
     var COMPLETE_ROW_MARKER = -1;
     var MOVING_PIECE_MARKER = "*";
 
+    var CanvasDrawer = new _CanvasDrawer();
+
     // -------------- INITIALIZER METHODS --------------
 
     var loadEmptyBoard = function() {
@@ -293,7 +295,7 @@ window.onload = function() {
             return pieceColor;
         };
 
-        this.initialize = function() {
+        this.initializeCanvas = function() {
             window.context.fillStyle = backgroundColor;
             window.context.fillRect(0, 0, canvas.width, canvas.height);
         };
@@ -333,9 +335,6 @@ window.onload = function() {
         };
     };
 
-    var CanvasDrawer = new _CanvasDrawer();
-    CanvasDrawer.initialize();
-
     // -------------- GAME METHODS --------------
 
     var game = function() {
@@ -364,6 +363,7 @@ window.onload = function() {
     window.game = game;
 
     var startGame = function() {
+        CanvasDrawer.initializeCanvas();
         loadEmptyBoard();
         initializeEventHandlers();
         generateNextPiece();
