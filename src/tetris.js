@@ -212,10 +212,10 @@ window.onload = function() {
         var rotatedPiece = copyPieceCoordinates();
         rotatedPiece = rotatedPiece.map(function(coord) { return new Coordinate(0 - coord.x, coord.y) });
         var yOffset = piece.coordinates.reduce(function(prev, curr) {
-            return new Coordinate(null, Math.max(prev.x, curr.x))
+            return prev.x > curr.x ? prev : curr
         }, piece.coordinates[0]).x;
         rotatedPiece = rotatedPiece.map(function(coord) { return new Coordinate(coord.y + yOffset, coord.x) });
-        if(rotatedPiece.every(function(coord) { return !spaceAtCoordinatesHasBlockingElement(coord.y + piece.y, coord.x + piece.x) })) {
+        if(rotatedPiece.every(function(coord) { return !spaceAtCoordinateHasBlockingElement(coord.y + piece.y, coord.x + piece.x) })) {
             clearPiece();
             piece.coordinates = rotatedPiece;
             drawPiece();
@@ -272,13 +272,13 @@ window.onload = function() {
         return coordinatesToCheck.some(function(coord) {
             var x = coord.x + piece.x;
             var y = coord.y + piece.y;
-            return spaceAtCoordinatesHasBlockingElement(y, x);
+            return spaceAtCoordinateHasBlockingElement(y, x);
         });
     };
 
     // -------------- SPACE VALIDATION METHODS --------------
 
-    var spaceAtCoordinatesHasBlockingElement = function(y, x) {
+    var spaceAtCoordinateHasBlockingElement = function(y, x) {
         return x < 0 || x >= boardWidth || y >= boardHeight || matrix[y][x] === STATIONARY_PIECE_MARKER;
     };
 
