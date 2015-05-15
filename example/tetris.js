@@ -1,4 +1,3 @@
-
 window.onload = function() {
 
     // -------------- INSTANCE VARIABLES --------------
@@ -60,7 +59,6 @@ window.onload = function() {
     var initializeEventHandlers = function() {
         document.onkeydown = function(e) {
             e = e || window.event;
-            console.log(e.keyCode);
 
             if(paused) {
                 setPause(false);
@@ -92,15 +90,12 @@ window.onload = function() {
     // -------------- DEBUG METHODS --------------
 
     var printBoard = function() {
-        console.log("---------- (step: " + steps + ")");
         for(var y = 0; y < matrix.length; y++) {
             var s = "";
             for(var x = 0; x < matrix[y].length; x++) {
                 s = s + matrix[y][x];
             }
-            console.log(s);
         }
-        console.log("----------");
     };
 
     
@@ -109,11 +104,9 @@ window.onload = function() {
         var str = "(y, x) origin: (" + piece.y + ", " + piece.x + ") coordinates: ";
         for(var i = 0; i < piece.coordinates.length; i++) {
             var coord = piece.coordinates[i];
-            console.log(coord.y + piece.y);
 
             str = str + "(" + (coord.y + piece.y) + ", " + (coord.x + piece.x) + ") ";
         }
-        console.log(str);
     };
 
     // -------------- BOARD VALIDATION METHODS --------------
@@ -216,7 +209,6 @@ window.onload = function() {
     };
 
     var rotatePiece = function() {
-        console.log("rotating piece");
         var rotatedPiece = copyPieceCoordinates();
         rotatedPiece = rotatedPiece.map(function(coord) { return new Coordinate(0 - coord.x, coord.y) });
         var yOffset = piece.coordinates.reduce(function(prev, curr) {
@@ -227,10 +219,6 @@ window.onload = function() {
             clearPiece();
             piece.coordinates = rotatedPiece;
             drawPiece();
-            console.log("rotated piece");
-        } else {
-            console.log("couldn't rotate piece");
-            setPause(true);
         }
     };
 
@@ -243,9 +231,7 @@ window.onload = function() {
     };
 
     var movePieceLeft = function() {
-        console.log("moving piece left");
         if(!pieceHasReachedAnEnd("left")) {
-            console.log("moved piece left");
             clearPiece();
             piece.x--;
             drawPiece();
@@ -254,9 +240,7 @@ window.onload = function() {
     };
 
     var movePieceRight = function() {
-        console.log("moving piece right");
         if(!pieceHasReachedAnEnd("right")) {
-            console.log("moved piece right");
             clearPiece();
             piece.x++;
             drawPiece();
@@ -265,9 +249,7 @@ window.onload = function() {
     };
 
     var movePieceFasterDownwards = function() {
-        console.log("moving piece faster downwards");
         if(!pieceHasReachedAnEnd("bottom")) {
-            console.log("moved piece faster downwards");
             clearPiece();
             piece.y++;
             drawPiece();
@@ -276,9 +258,7 @@ window.onload = function() {
     };
 
     var dropPiece = function() {
-        console.log("dropping piece");
         while(!pieceHasReachedAnEnd("bottom")) {
-            console.log("dropped piece");
             clearPiece();
             piece.y++;
             drawPiece();
@@ -343,14 +323,11 @@ window.onload = function() {
         this.drawPiece = function(clearOrDraw) {
 
             if(clearOrDraw === "clear") {
-                console.log("CLEAR WTF")
                 window.context.fillStyle = backgroundColor;
             } else {
-                console.log("PIECE COLOR WTF???")
                 window.context.fillStyle = getPieceColor();
             }
 
-            console.log("window.context.fillStyle: " + window.context.fillStyle);
             for(var i = 0; i < piece.coordinates.length; i++) {
                 var x = (piece.x + piece.coordinates[i].x) * blockSize;
                 var y = (piece.y + piece.coordinates[i].y) * blockSize;
@@ -359,7 +336,6 @@ window.onload = function() {
         };
 
         this.clearPiece = function() {
-            console.log("clearing piece on canvas");
             this.drawPiece("clear");
         };
 
@@ -390,16 +366,12 @@ window.onload = function() {
                 if(gameOver) return;
                 time = Date.now();
                 if(pieceHasReachedAnEnd("bottom") && steps !== 0) {
-                    console.log("piece at bottom");
                     convertMovingPieceToStationaryPiece();
                     removeCompletedRows();
                     if(topRowHasAStationaryPiece()) {
-                        console.log(piece);
-                        console.log("game over");
                         gameOver = true;
                         return;
                     }
-                    console.log("piece has reached an end");
                     generateNextPiece();
                 } else {
                     movePieceDownwards();
