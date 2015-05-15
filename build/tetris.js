@@ -38,8 +38,6 @@ window.onload = function() {
     var COMPLETE_ROW_MARKER = -1;
     var MOVING_PIECE_MARKER = "*";
 
-    var CanvasDrawer = new _CanvasDrawer();
-
     // -------------- INITIALIZER METHODS --------------
 
     var loadEmptyBoard = function() {
@@ -216,7 +214,6 @@ window.onload = function() {
             piece.x--;
             drawPiece();
         }
-        printBoard();
     };
 
     var movePieceRight = function() {
@@ -225,7 +222,6 @@ window.onload = function() {
             piece.x++;
             drawPiece();
         }
-        printBoard();
     };
 
     var movePieceFasterDownwards = function() {
@@ -234,7 +230,6 @@ window.onload = function() {
             piece.y++;
             drawPiece();
         }
-        printBoard();
     };
 
     var dropPiece = function() {
@@ -243,7 +238,6 @@ window.onload = function() {
             piece.y++;
             drawPiece();
         }
-        printBoard();
     };
 
     // -------------- PIECE VALIDATION METHODS --------------
@@ -335,6 +329,8 @@ window.onload = function() {
         };
     };
 
+    var CanvasDrawer = new _CanvasDrawer();
+
     // -------------- GAME METHODS --------------
 
     var game = function() {
@@ -354,7 +350,6 @@ window.onload = function() {
                     movePieceDownwards();
                 }
                 steps++;
-                printBoard(); // dev
             }
            game();
        }, increment);

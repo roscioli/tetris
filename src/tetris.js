@@ -214,7 +214,6 @@ window.onload = function() {
             piece.x--;
             drawPiece();
         }
-        printBoard();
     };
 
     var movePieceRight = function() {
@@ -223,7 +222,6 @@ window.onload = function() {
             piece.x++;
             drawPiece();
         }
-        printBoard();
     };
 
     var movePieceFasterDownwards = function() {
@@ -232,7 +230,6 @@ window.onload = function() {
             piece.y++;
             drawPiece();
         }
-        printBoard();
     };
 
     var dropPiece = function() {
@@ -241,7 +238,6 @@ window.onload = function() {
             piece.y++;
             drawPiece();
         }
-        printBoard();
     };
 
     // -------------- PIECE VALIDATION METHODS --------------
@@ -354,7 +350,6 @@ window.onload = function() {
                     movePieceDownwards();
                 }
                 steps++;
-                printBoard(); // dev
             }
            game();
        }, increment);
