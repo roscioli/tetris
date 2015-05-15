@@ -38,8 +38,6 @@ window.onload = function() {
     var COMPLETE_ROW_MARKER = -1;
     var MOVING_PIECE_MARKER = "*";
 
-    var CanvasDrawer = new _CanvasDrawer();
-
     // -------------- INITIALIZER METHODS --------------
 
     var loadEmptyBoard = function() {
@@ -334,6 +332,8 @@ window.onload = function() {
             }
         };
     };
+
+    var CanvasDrawer = new _CanvasDrawer();
 
     // -------------- GAME METHODS --------------
 
