@@ -261,7 +261,10 @@ window.onload = function() {
         }
     };
 
+    var DROPPING = false;
+
     var dropPiece = function() {
+        if(DROPPING)
         while(!pieceHasReachedAnEnd("bottom")) {
             clearPiece();
             piece.y++;
@@ -281,19 +284,18 @@ window.onload = function() {
         }
 
         var coordinatesToCheck = piece.coordinates.map(mapper);
-        for(var i = 0; i < coordinatesToCheck.length; i++) {
-            var x = coordinatesToCheck[i].x + piece.x;
-            var y = coordinatesToCheck[i].y + piece.y;
-            if(spaceAtCoordinatesHasBlockingElement(y, x)) return true;
-        }
 
-        return false;
+        return coordinatesToCheck.some(function(coord) {
+            var x = coord.x + piece.x;
+            var y = coord.y + piece.y;
+            return spaceAtCoordinatesHasBlockingElement(y, x);
+        });
     };
 
     // -------------- SPACE VALIDATION METHODS --------------
 
     var spaceAtCoordinatesHasBlockingElement = function(y, x) {
-        console.log(y);
+        console.log(y >= matrix.length);
         return x < 0 || x >= boardWidth || y >= matrix.length || matrix[y][x] === STATIONARY_PIECE_MARKER;
     };
 
