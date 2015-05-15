@@ -87,28 +87,6 @@ window.onload = function() {
         };
     };
 
-    // -------------- DEBUG METHODS --------------
-
-    var printBoard = function() {
-        for(var y = 0; y < matrix.length; y++) {
-            var s = "";
-            for(var x = 0; x < matrix[y].length; x++) {
-                s = s + matrix[y][x];
-            }
-        }
-    };
-
-    
-
-    var printCoordinates = function() {
-        var str = "(y, x) origin: (" + piece.y + ", " + piece.x + ") coordinates: ";
-        for(var i = 0; i < piece.coordinates.length; i++) {
-            var coord = piece.coordinates[i];
-
-            str = str + "(" + (coord.y + piece.y) + ", " + (coord.x + piece.x) + ") ";
-        }
-    };
-
     // -------------- BOARD VALIDATION METHODS --------------
 
     var topRowHasAStationaryPiece = function() {
