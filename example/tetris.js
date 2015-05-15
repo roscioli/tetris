@@ -6,10 +6,15 @@ window.onload = function() {
     var boardHeight = 14;
     var maxPieceHeight = 2;
     var time = Date.now();
-    var increment = 600;
+    var timeoutIncrement = 1100;
+    var incrementalSpeedup = 50;
     var steps = 0;
     var paused = false;
     var gameOver = false;
+    var score = 0;
+    var lines = 0;
+    var level = 1;
+    var numberOfLinesBeforeNextLevel = 1;
 
     var matrix = [];
 
@@ -111,15 +116,8 @@ window.onload = function() {
         return row.every(function(x) { return x === 0; })
     };
 
-    // ** Unused Method **
-    var getCompletedRows = function() {
-        var rows = [];
-        for(var i = 0; i < piece.coordinates.length; i++) {
-            var coord = piece.coordinates[i];
-            var row = coord.y + piece.y;
-            if(isACompleteRow(row) && !rows.contains(row)) rows.push(row);
-        }
-        return rows.sort();
+    var getNumberOfCompletedRows = function() {
+        return matrix.reduce(function(prev, row) { return prev + (isACompleteRow(row) ? 1 : 0) }, 0);
     };
     
     var removeCompletedRows = function() {
@@ -133,6 +131,30 @@ window.onload = function() {
         }
         matrix = newMatrixPrefix.concat(newMatrix);
         CanvasDrawer.renderMatrix();
+    };
+
+    // -------------- GAME UPKEEP: SCORE & LEVEL METHODS --------------
+
+    var updateScore = function() {
+        var SCORES = [0, 40, 100, 300, 1200];
+        var numberOfCompletedRows = getNumberOfCompletedRows();
+        score += SCORES[numberOfCompletedRows] * getLevel();
+        lines += numberOfCompletedRows;
+        console.log("score: " + score);
+    };
+
+    var getLevel = function() {
+        return Math.floor(lines / numberOfLinesBeforeNextLevel) + 1;
+    };
+
+    var updateLevel = function() {
+        var newlyCalculatedLevel = getLevel();
+        if(newlyCalculatedLevel > level) {
+            level = newlyCalculatedLevel;
+            timeoutIncrement -= incrementalSpeedup;
+            console.log("  level: " + level);
+            console.log("timeout: " + timeoutIncrement);
+        }
     };
 
     // -------------- PIECE GENERATION, TRANSFORMATION, & DESTRUCTION METHODS --------------
@@ -157,7 +179,14 @@ window.onload = function() {
         var matrixMarker = action === "clear" ? 0 : MOVING_PIECE_MARKER;
         for(var i = 0; i < piece.coordinates.length; i++) {
             var coordinate = piece.coordinates[i];
-            matrix[piece.y + coordinate.y][piece.x + coordinate.x] = matrixMarker;
+            try {
+                matrix[piece.y + coordinate.y][piece.x + coordinate.x] = matrixMarker;
+            } catch(e) {
+                console.log(action);
+                console.log("piece.y + coordinate.y: " + (piece.y + coordinate.y));
+                console.log("piece.x + coordinate.x: " + (piece.x + coordinate.x));
+                console.log(JSON.stringify(piece));
+            }
         }
     };
 
@@ -264,6 +293,7 @@ window.onload = function() {
     // -------------- SPACE VALIDATION METHODS --------------
 
     var spaceAtCoordinatesHasBlockingElement = function(y, x) {
+        console.log(y);
         return x < 0 || x >= boardWidth || y >= matrix.length || matrix[y][x] === STATIONARY_PIECE_MARKER;
     };
 
@@ -340,6 +370,8 @@ window.onload = function() {
                 time = Date.now();
                 if(pieceHasReachedAnEnd("bottom") && steps !== 0) {
                     convertMovingPieceToStationaryPiece();
+                    updateScore();
+                    updateLevel();
                     removeCompletedRows();
                     if(topRowHasAStationaryPiece()) {
                         gameOver = true;
@@ -352,7 +384,7 @@ window.onload = function() {
                 steps++;
             }
            game();
-       }, increment);
+       }, timeoutIncrement);
     };
 
     window.game = game;
