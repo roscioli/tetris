@@ -179,14 +179,7 @@ window.onload = function() {
         var matrixMarker = action === "clear" ? 0 : MOVING_PIECE_MARKER;
         for(var i = 0; i < piece.coordinates.length; i++) {
             var coordinate = piece.coordinates[i];
-            try {
-                matrix[piece.y + coordinate.y][piece.x + coordinate.x] = matrixMarker;
-            } catch(e) {
-                console.log(action);
-                console.log("piece.y + coordinate.y: " + (piece.y + coordinate.y));
-                console.log("piece.x + coordinate.x: " + (piece.x + coordinate.x));
-                console.log(JSON.stringify(piece));
-            }
+            matrix[piece.y + coordinate.y][piece.x + coordinate.x] = matrixMarker;
         }
     };
 
@@ -257,8 +250,6 @@ window.onload = function() {
 
     var dropPiece = function() {
         while(!pieceHasReachedAnEnd("bottom")) {
-            // console.log('!pieceHasReachedAnEnd("bottom") is TRUE');
-            // console.log(JSON.stringify(piece));
             clearPiece();
             piece.y++;
             drawPiece();
@@ -288,7 +279,6 @@ window.onload = function() {
     // -------------- SPACE VALIDATION METHODS --------------
 
     var spaceAtCoordinatesHasBlockingElement = function(y, x) {
-        // console.log(y >= matrix.length);
         return x < 0 || x >= boardWidth || y >= boardHeight || matrix[y][x] === STATIONARY_PIECE_MARKER;
     };
 
