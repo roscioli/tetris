@@ -41,6 +41,27 @@ window.onload = function() {
     var STATIONARY_PIECE_MARKER = 1;
     var MOVING_PIECE_MARKER = "*";
 
+    // -------------- DEBUG METHODS --------------
+
+    var dumpData = function() {
+        window.Game = {
+            boardWidth: boardWidth,
+            boardHeight: boardHeight,
+            maxPieceHeight: maxPieceHeight,
+            time: time,
+            timeout: timeout,
+            timeoutIncrement: timeoutIncrement,
+            steps: steps,
+            paused: paused,
+            gameOver: gameOver,
+            score: score,
+            lines: lines,
+            level: level,
+            numberOfLinesBeforeNextLevel: numberOfLinesBeforeNextLevel,
+            matrix: matrix
+        };
+    };
+
     // -------------- INITIALIZER METHODS --------------
 
     var initializeVariables = function() {
@@ -350,10 +371,7 @@ window.onload = function() {
     var game = function() {
        window.setTimeout(function() {
             if(!paused) {
-                if(gameOver) {
-                    alertUserOfGameOver();
-                    return;
-                }
+                if(gameOver) return;
                 time = Date.now();
                 if(pieceHasReachedAnEnd("bottom") && steps !== 0) {
                     convertMovingPieceToStationaryPiece();
@@ -362,6 +380,8 @@ window.onload = function() {
                     removeCompletedRows();
                     if(topRowHasAStationaryPiece()) {
                         gameOver = true;
+                        alertUserOfGameOver();
+                        dumpData();
                         console.log("game over");
                         return;
                     }
@@ -388,10 +408,13 @@ window.onload = function() {
     startGame();
 
     var alertUserOfGameOver = function() {
+        console.trace();
         if(storeNewHighScore(score)) {
+            console.log("new high score");
             // say "new high score or something"
         } else if(storeNewTopScore(score)) {
             // say "you placed in top five or something"
+            console.log("new top five score");
         }
     };
 
@@ -400,10 +423,12 @@ window.onload = function() {
     var TOP_RANGE = 5;
 
     var getHighScores = function() {
-        return JSON.parse(localStorage.highScores) || [0];
+        console.log("getHighScores: " + score);
+        return JSON.parse(localStorage.highScores || "[]");
     };
 
     var addScoreToHighScores = function(score) {
+        console.log("addScoreToHighScores: " + score);
         var highScores = getHighScores();
         highScores.push(score);
         highScores.sortNumbers().reverse();
@@ -412,22 +437,27 @@ window.onload = function() {
     };
 
     var scoreIsNewHighScore = function(score) {
-        return score > getHighScores()[0];
+        console.log("scoreIsNewHighScore: " + score);
+        return score > (getHighScores()[0] || 0);
     };
 
     var scoreIsInTopRange = function(score) {
-        return score > getHighScores().last();
+        console.log("scoreIsInTopRange: " + score);
+        var highScores = getHighScores();
+        return score > (highScores.last() || 0) || highScores.length < TOP_RANGE;
     };
 
     var storeNewHighScore = function(score) {
-        if(scoreIsNewHighScore()) {
+        console.log("storeNewHighScore: " + score);
+        if(scoreIsNewHighScore(score) && score != 0) {
             addScoreToHighScores(score);
             return true;
         }
     };
 
     var storeNewTopScore = function(score) {
-        if(scoreIsInTopRange()) {
+        console.log("storeNewTopScore: " + score);
+        if(scoreIsInTopRange(score) && score != 0) {
             addScoreToHighScores(score);
             return true;
         }
