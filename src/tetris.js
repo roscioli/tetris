@@ -2,20 +2,7 @@ window.onload = function() {
 
     // -------------- INSTANCE VARIABLES --------------
 
-    var boardWidth = 10;
-    var boardHeight = 14;
-    var maxPieceHeight = 2;
-    var time = Date.now();
-    var timeout = 1000;
-    var timeoutIncrement = 50;
-    var steps = 0;
-    var paused = false;
-    var gameOver = false;
-    var score = 0;
-    var lines = 0;
-    var level = 1;
-    var numberOfLinesBeforeNextLevel = 1;
-    var matrix = [];
+    var Game = {};
 
     var Coordinate = function(y, x) {
         this.y = y;
@@ -44,41 +31,57 @@ window.onload = function() {
     // -------------- DEBUG METHODS --------------
 
     var dumpData = function() {
-        window.Game = {
-            boardWidth: boardWidth,
-            boardHeight: boardHeight,
-            maxPieceHeight: maxPieceHeight,
-            time: time,
-            timeout: timeout,
-            timeoutIncrement: timeoutIncrement,
-            steps: steps,
-            paused: paused,
-            gameOver: gameOver,
-            score: score,
-            lines: lines,
-            level: level,
-            numberOfLinesBeforeNextLevel: numberOfLinesBeforeNextLevel,
-            matrix: matrix
+        window.DataDump = {
+            boardWidth: Game.boardWidth,
+            boardHeight: Game.boardHeight,
+            time: Game.time,
+            timeout: Game.timeout,
+            timeoutIncrement: Game.timeoutIncrement,
+            steps: Game.steps,
+            paused: Game.paused,
+            gameOver: Game.gameOver,
+            score: Game.score,
+            lines: Game.lines,
+            level: Game.level,
+            numberOfLinesBeforeNextLevel: Game.numberOfLinesBeforeNextLevel,
+            matrix: Game.matrix
         };
     };
 
     // -------------- INITIALIZER METHODS --------------
 
-    var initializeVariables = function() {
 
+    var initializeGameVariables = function() {
+        Game = {
+            boardWidth: 10,
+            boardHeight: 14,
+            time: Date.now(),
+            timeout: 1000,
+            timeoutIncrement: 50,
+            steps: 0,
+            paused: false,
+            gameOver: false,
+            score: 0,
+            lines: 0,
+            level: 1,
+            numberOfLinesBeforeNextLevel: 1,
+            matrix: []
+        };
     };
 
+    initializeGameVariables();
+
     var loadEmptyBoard = function() {
-        matrix = [];
-        for(var y = 0; y < boardHeight; y++) {
-            matrix.push(getAFreshRow());
+        Game.matrix = [];
+        for(var y = 0; y < Game.boardHeight; y++) {
+            Game.matrix.push(getAFreshRow());
         }
     };
 
     var getAFreshRow = function(_marker) {
         var row = [];
         var marker = !!_marker ? _marker : 0;
-        for(var i = 0; i < boardWidth; i++) {
+        for(var i = 0; i < Game.boardWidth; i++) {
             row.push(marker);
         }
         return row;
@@ -88,7 +91,7 @@ window.onload = function() {
         document.onkeydown = function(e) {
             e = e || window.event;
 
-            if(paused) {
+            if(Game.paused) {
                 setPause(false);
                 return;
             }
@@ -118,7 +121,7 @@ window.onload = function() {
     // -------------- BOARD VALIDATION METHODS --------------
 
     var topRowHasAStationaryPiece = function() {
-        return matrix[0].contains(STATIONARY_PIECE_MARKER);
+        return Game.matrix[0].contains(STATIONARY_PIECE_MARKER);
     };
 
     // -------------- BOARD UPKEEP: ROW DELETION METHODS --------------
@@ -132,19 +135,19 @@ window.onload = function() {
     };
 
     var getNumberOfCompletedRows = function() {
-        return matrix.reduce(function(prev, row) { return prev + (isACompleteRow(row) ? 1 : 0) }, 0);
+        return Game.matrix.reduce(function(prev, row) { return prev + (isACompleteRow(row) ? 1 : 0) }, 0);
     };
     
     var removeCompletedRows = function() {
         var newMatrixPrefix = [];
         var newMatrix = [];
-        for(var i = matrix.length - 1; i >= 0; i--) {
-            var row = matrix[i];
+        for(var i = Game.matrix.length - 1; i >= 0; i--) {
+            var row = Game.matrix[i];
             isACompleteRow(row) ?
                 newMatrixPrefix.push(getAFreshRow())
                 : newMatrix.unshift(row);
         }
-        matrix = newMatrixPrefix.concat(newMatrix);
+        Game.matrix = newMatrixPrefix.concat(newMatrix);
         CanvasDrawer.renderMatrix();
     };
 
@@ -153,27 +156,27 @@ window.onload = function() {
     var updateScore = function() {
         var SCORES = [0, 40, 100, 300, 1200];
         var numberOfCompletedRows = getNumberOfCompletedRows();
-        score += SCORES[numberOfCompletedRows] * getLevel();
-        lines += numberOfCompletedRows;
-        console.log("score: " + score);
+        Game.score += SCORES[numberOfCompletedRows] * getLevel();
+        Game.lines += numberOfCompletedRows;
+        console.log("score: " + Game.score);
     };
 
     var getLevel = function() {
-        return Math.floor(lines / numberOfLinesBeforeNextLevel) + 1;
+        return Math.floor(Game.lines / Game.numberOfLinesBeforeNextLevel) + 1;
     };
 
     var getTimeout = function() {
-        return timeout > timeoutIncrement ?
-            timeout - ((level - 1) * timeoutIncrement)
-            : timeoutIncrement;
+        return Game.timeout > Game.timeoutIncrement ?
+            Game.timeout - ((Game.level - 1) * Game.timeoutIncrement)
+            : Game.timeoutIncrement;
     };
 
     var updateLevel = function() {
         var newlyCalculatedLevel = getLevel();
-        if(newlyCalculatedLevel > level) {
-            level = newlyCalculatedLevel;
-            console.log("  level: " + level);
-            console.log("timeout: " + getTimeout());
+        if(newlyCalculatedLevel > Game.level) {
+            Game.level = newlyCalculatedLevel;
+            console.log("  Game.level: " + Game.level);
+            console.log("Game.timeout: " + getTimeout());
         }
     };
 
@@ -184,7 +187,7 @@ window.onload = function() {
         var possibilities = Object.keys(PIECES);
         piece.coordinates = PIECES[possibilities[Math.floor(Math.random() * possibilities.length)]];
         var pieceWidth = piece.coordinates.reduce(function(prev, curr) { return Math.max(prev, curr.x); }, 0);
-        piece.x = Math.floor((boardWidth - pieceWidth) / 2);
+        piece.x = Math.floor((Game.boardWidth - pieceWidth) / 2);
         drawPiece();
     };
 
@@ -199,7 +202,7 @@ window.onload = function() {
         var matrixMarker = action === "clear" ? 0 : MOVING_PIECE_MARKER;
         for(var i = 0; i < piece.coordinates.length; i++) {
             var coordinate = piece.coordinates[i];
-            matrix[piece.y + coordinate.y][piece.x + coordinate.x] = matrixMarker;
+            Game.matrix[piece.y + coordinate.y][piece.x + coordinate.x] = matrixMarker;
         }
     };
 
@@ -213,7 +216,7 @@ window.onload = function() {
 
     var convertMovingPieceToStationaryPiece = function() {
         for(var i = 0; i < piece.coordinates.length; i++) {
-            matrix[piece.coordinates[i].y + piece.y][piece.coordinates[i].x + piece.x] = STATIONARY_PIECE_MARKER;
+            Game.matrix[piece.coordinates[i].y + piece.y][piece.coordinates[i].x + piece.x] = STATIONARY_PIECE_MARKER;
         }
     };
 
@@ -235,7 +238,7 @@ window.onload = function() {
             return prev.x > curr.x ? prev : curr
         }, piece.coordinates[0]).x;
         rotatedPiece = rotatedPiece.map(function(coord) { return new Coordinate(coord.y + yOffset, coord.x) });
-        if(rotatedPiece.every(function(coord) { return !spaceAtCoordinateHasBlockingElement(coord.y + piece.y, coord.x + piece.x) })) {
+        if(rotatedPiece.every(function(coord) { return !spaceIsBlocked(coord.y + piece.y, coord.x + piece.x) })) {
             clearPiece();
             piece.coordinates = rotatedPiece;
             drawPiece();
@@ -292,20 +295,20 @@ window.onload = function() {
         return coordinatesToCheck.some(function(coord) {
             var x = coord.x + piece.x;
             var y = coord.y + piece.y;
-            return spaceAtCoordinateHasBlockingElement(y, x);
+            return spaceIsBlocked(y, x);
         });
     };
 
     // -------------- SPACE VALIDATION METHODS --------------
 
-    var spaceAtCoordinateHasBlockingElement = function(y, x) {
-        return x < 0 || x >= boardWidth || y >= boardHeight || matrix[y][x] === STATIONARY_PIECE_MARKER;
+    var spaceIsBlocked = function(y, x) {
+        return x < 0 || x >= Game.boardWidth || y >= Game.boardHeight || Game.matrix[y][x] === STATIONARY_PIECE_MARKER;
     };
 
     // -------------- PAUSE FUNCTIONALITY METHODS --------------
 
     var setPause = function(toPauseOrNotToPause) {
-        paused = toPauseOrNotToPause;
+        Game.paused = toPauseOrNotToPause;
     };
 
     // -------------- DRAWING METHODS --------------
@@ -314,8 +317,8 @@ window.onload = function() {
 
         var blockSize = 30;
         var canvas = document.getElementById("canvas");
-        canvas.width = blockSize * boardWidth;
-        canvas.height = blockSize * (boardHeight);
+        canvas.width = blockSize * Game.boardWidth;
+        canvas.height = blockSize * (Game.boardHeight);
         window.context = canvas.getContext("2d");
         var backgroundColor = "#000000";
         var pieceColor = "rebeccapurple"
@@ -349,9 +352,9 @@ window.onload = function() {
         };
 
         this.renderMatrix = function() {
-            for(var y = 0; y < boardHeight; y++) {
-                for(var x = 0; x < boardWidth; x++) {
-                    switch(matrix[y][x]) {
+            for(var y = 0; y < Game.boardHeight; y++) {
+                for(var x = 0; x < Game.boardWidth; x++) {
+                    switch(Game.matrix[y][x]) {
                         case STATIONARY_PIECE_MARKER:
                             window.context.fillStyle = getPieceColor();
                             break;
@@ -370,16 +373,16 @@ window.onload = function() {
 
     var game = function() {
        window.setTimeout(function() {
-            if(!paused) {
-                if(gameOver) return;
-                time = Date.now();
-                if(pieceHasReachedAnEnd("bottom") && steps !== 0) {
+            if(!Game.paused) {
+                if(Game.gameOver) return;
+                Game.time = Date.now();
+                if(pieceHasReachedAnEnd("bottom") && Game.steps !== 0) {
                     convertMovingPieceToStationaryPiece();
                     updateScore();
                     updateLevel();
                     removeCompletedRows();
                     if(topRowHasAStationaryPiece()) {
-                        gameOver = true;
+                        Game.gameOver = true;
                         alertUserOfGameOver();
                         dumpData();
                         console.log("game over");
@@ -389,7 +392,7 @@ window.onload = function() {
                 } else {
                     movePieceDownwards();
                 }
-                steps++;
+                Game.steps++;
             }
            game();
        }, getTimeout());
@@ -398,6 +401,7 @@ window.onload = function() {
     window.game = game;
 
     var startGame = function() {
+        initializeGameVariables();
         CanvasDrawer.initializeCanvas();
         loadEmptyBoard();
         initializeEventHandlers();
@@ -408,11 +412,10 @@ window.onload = function() {
     startGame();
 
     var alertUserOfGameOver = function() {
-        console.trace();
-        if(storeNewHighScore(score)) {
+        if(storeNewHighScore(Game.score)) {
             console.log("new high score");
             // say "new high score or something"
-        } else if(storeNewTopScore(score)) {
+        } else if(storeNewTopScore(Game.score)) {
             // say "you placed in top five or something"
             console.log("new top five score");
         }
@@ -423,12 +426,10 @@ window.onload = function() {
     var TOP_RANGE = 5;
 
     var getHighScores = function() {
-        console.log("getHighScores: " + score);
         return JSON.parse(localStorage.highScores || "[]");
     };
 
     var addScoreToHighScores = function(score) {
-        console.log("addScoreToHighScores: " + score);
         var highScores = getHighScores();
         highScores.push(score);
         highScores.sortNumbers().reverse();
@@ -437,18 +438,15 @@ window.onload = function() {
     };
 
     var scoreIsNewHighScore = function(score) {
-        console.log("scoreIsNewHighScore: " + score);
         return score > (getHighScores()[0] || 0);
     };
 
     var scoreIsInTopRange = function(score) {
-        console.log("scoreIsInTopRange: " + score);
         var highScores = getHighScores();
         return score > (highScores.last() || 0) || highScores.length < TOP_RANGE;
     };
 
     var storeNewHighScore = function(score) {
-        console.log("storeNewHighScore: " + score);
         if(scoreIsNewHighScore(score) && score != 0) {
             addScoreToHighScores(score);
             return true;
@@ -456,7 +454,6 @@ window.onload = function() {
     };
 
     var storeNewTopScore = function(score) {
-        console.log("storeNewTopScore: " + score);
         if(scoreIsInTopRange(score) && score != 0) {
             addScoreToHighScores(score);
             return true;
