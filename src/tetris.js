@@ -50,6 +50,7 @@ window.onload = function() {
 
     // -------------- INITIALIZER METHODS --------------
 
+
     var initializeGameVariables = function() {
         Game = {
             boardWidth: 10,
@@ -67,6 +68,8 @@ window.onload = function() {
             matrix: []
         };
     };
+
+    initializeGameVariables();
 
     var loadEmptyBoard = function() {
         Game.matrix = [];
@@ -155,7 +158,7 @@ window.onload = function() {
         var numberOfCompletedRows = getNumberOfCompletedRows();
         Game.score += SCORES[numberOfCompletedRows] * getLevel();
         Game.lines += numberOfCompletedRows;
-        console.log("Game.score: " + Game.score);
+        console.log("score: " + Game.score);
     };
 
     var getLevel = function() {
@@ -409,11 +412,10 @@ window.onload = function() {
     startGame();
 
     var alertUserOfGameOver = function() {
-        console.trace();
         if(storeNewHighScore(Game.score)) {
             console.log("new high score");
             // say "new high score or something"
-        } else if(storeNewTopScore(score)) {
+        } else if(storeNewTopScore(Game.score)) {
             // say "you placed in top five or something"
             console.log("new top five score");
         }
@@ -424,12 +426,10 @@ window.onload = function() {
     var TOP_RANGE = 5;
 
     var getHighScores = function() {
-        console.log("getHighScores: " + score);
         return JSON.parse(localStorage.highScores || "[]");
     };
 
     var addScoreToHighScores = function(score) {
-        console.log("addScoreToHighScores: " + score);
         var highScores = getHighScores();
         highScores.push(score);
         highScores.sortNumbers().reverse();
@@ -438,18 +438,15 @@ window.onload = function() {
     };
 
     var scoreIsNewHighScore = function(score) {
-        console.log("scoreIsNewHighScore: " + score);
         return score > (getHighScores()[0] || 0);
     };
 
     var scoreIsInTopRange = function(score) {
-        console.log("scoreIsInTopRange: " + score);
         var highScores = getHighScores();
         return score > (highScores.last() || 0) || highScores.length < TOP_RANGE;
     };
 
     var storeNewHighScore = function(score) {
-        console.log("storeNewHighScore: " + score);
         if(scoreIsNewHighScore(score) && score != 0) {
             addScoreToHighScores(score);
             return true;
@@ -457,7 +454,6 @@ window.onload = function() {
     };
 
     var storeNewTopScore = function(score) {
-        console.log("storeNewTopScore: " + score);
         if(scoreIsInTopRange(score) && score != 0) {
             addScoreToHighScores(score);
             return true;
