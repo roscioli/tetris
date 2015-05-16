@@ -2,6 +2,8 @@ window.onload = function() {
 
     // -------------- INSTANCE VARIABLES --------------
 
+    var Game = {};
+
     var boardWidth = 10;
     var boardHeight = 14;
     var maxPieceHeight = 2;
@@ -44,7 +46,7 @@ window.onload = function() {
     // -------------- DEBUG METHODS --------------
 
     var dumpData = function() {
-        window.Game = {
+        window.DataDump = {
             boardWidth: boardWidth,
             boardHeight: boardHeight,
             maxPieceHeight: maxPieceHeight,
@@ -64,8 +66,36 @@ window.onload = function() {
 
     // -------------- INITIALIZER METHODS --------------
 
-    var initializeVariables = function() {
+    var boardWidth = 10;
+    var boardHeight = 14;
+    var maxPieceHeight = 2;
+    var time = Date.now();
+    var timeout = 1000;
+    var timeoutIncrement = 50;
+    var steps = 0;
+    var paused = false;
+    var gameOver = false;
+    var score = 0;
+    var lines = 0;
+    var level = 1;
+    var numberOfLinesBeforeNextLevel = 1;
+    var matrix = [];
 
+    var initializeVariables = function() {
+            boardWidth: 10,
+            boardHeight: 14,
+            maxPieceHeight: 2,
+            time: Date.now(),
+            timeout: 1000,
+            timeoutIncrement: 50,
+            steps: 0,
+            paused: false,
+            gameOver: false,
+            score: 0,
+            lines: 0,
+            level: 1,
+            numberOfLinesBeforeNextLevel: 1,
+            matrix: []
     };
 
     var loadEmptyBoard = function() {
@@ -235,7 +265,7 @@ window.onload = function() {
             return prev.x > curr.x ? prev : curr
         }, piece.coordinates[0]).x;
         rotatedPiece = rotatedPiece.map(function(coord) { return new Coordinate(coord.y + yOffset, coord.x) });
-        if(rotatedPiece.every(function(coord) { return !spaceAtCoordinateHasBlockingElement(coord.y + piece.y, coord.x + piece.x) })) {
+        if(rotatedPiece.every(function(coord) { return !spaceIsBlocked(coord.y + piece.y, coord.x + piece.x) })) {
             clearPiece();
             piece.coordinates = rotatedPiece;
             drawPiece();
@@ -292,13 +322,13 @@ window.onload = function() {
         return coordinatesToCheck.some(function(coord) {
             var x = coord.x + piece.x;
             var y = coord.y + piece.y;
-            return spaceAtCoordinateHasBlockingElement(y, x);
+            return spaceIsBlocked(y, x);
         });
     };
 
     // -------------- SPACE VALIDATION METHODS --------------
 
-    var spaceAtCoordinateHasBlockingElement = function(y, x) {
+    var spaceIsBlocked = function(y, x) {
         return x < 0 || x >= boardWidth || y >= boardHeight || matrix[y][x] === STATIONARY_PIECE_MARKER;
     };
 
