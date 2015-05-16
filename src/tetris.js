@@ -6,8 +6,8 @@ window.onload = function() {
     var boardHeight = 14;
     var maxPieceHeight = 2;
     var time = Date.now();
-    var timeoutIncrement = 1100;
-    var incrementalSpeedup = 50;
+    var timeout = 1000;
+    var timeoutIncrement = 50;
     var steps = 0;
     var paused = false;
     var gameOver = false;
@@ -81,7 +81,7 @@ window.onload = function() {
                     movePieceRight();
                     break;
                 case 40:
-                    movePieceFasterDownwards();
+                    movePieceDownwards();
                     break;
                 case 32:
                     dropPiece();
@@ -147,13 +147,18 @@ window.onload = function() {
         return Math.floor(lines / numberOfLinesBeforeNextLevel) + 1;
     };
 
+    var getTimeout = function() {
+        return timeout > timeoutIncrement ?
+            timeout - ((level - 1) * timeoutIncrement)
+            : timeoutIncrement;
+    };
+
     var updateLevel = function() {
         var newlyCalculatedLevel = getLevel();
         if(newlyCalculatedLevel > level) {
             level = newlyCalculatedLevel;
-            timeoutIncrement -= incrementalSpeedup;
             console.log("  level: " + level);
-            console.log("timeout: " + timeoutIncrement);
+            console.log("timeout: " + getTimeout());
         }
     };
 
@@ -179,14 +184,7 @@ window.onload = function() {
         var matrixMarker = action === "clear" ? 0 : MOVING_PIECE_MARKER;
         for(var i = 0; i < piece.coordinates.length; i++) {
             var coordinate = piece.coordinates[i];
-            try {
-                matrix[piece.y + coordinate.y][piece.x + coordinate.x] = matrixMarker;
-            } catch(e) {
-                console.log(action);
-                console.log("piece.y + coordinate.y: " + (piece.y + coordinate.y));
-                console.log("piece.x + coordinate.x: " + (piece.x + coordinate.x));
-                console.log(JSON.stringify(piece));
-            }
+            matrix[piece.y + coordinate.y][piece.x + coordinate.x] = matrixMarker;
         }
     };
 
@@ -219,10 +217,10 @@ window.onload = function() {
         var rotatedPiece = copyPieceCoordinates();
         rotatedPiece = rotatedPiece.map(function(coord) { return new Coordinate(0 - coord.x, coord.y) });
         var yOffset = piece.coordinates.reduce(function(prev, curr) {
-            return new Coordinate(null, Math.max(prev.x, curr.x))
+            return prev.x > curr.x ? prev : curr
         }, piece.coordinates[0]).x;
         rotatedPiece = rotatedPiece.map(function(coord) { return new Coordinate(coord.y + yOffset, coord.x) });
-        if(rotatedPiece.every(function(coord) { return !spaceAtCoordinatesHasBlockingElement(coord.y + piece.y, coord.x + piece.x) })) {
+        if(rotatedPiece.every(function(coord) { return !spaceAtCoordinateHasBlockingElement(coord.y + piece.y, coord.x + piece.x) })) {
             clearPiece();
             piece.coordinates = rotatedPiece;
             drawPiece();
@@ -232,9 +230,11 @@ window.onload = function() {
     // -------------- PIECE MOVEMENT METHODS --------------
 
     var movePieceDownwards = function() {
-        clearPiece();
-        piece.y++;
-        drawPiece();
+        if(!pieceHasReachedAnEnd("bottom")) {
+            clearPiece();
+            piece.y++;
+            drawPiece();
+        }
     };
 
     var movePieceLeft = function() {
@@ -253,18 +253,7 @@ window.onload = function() {
         }
     };
 
-    var movePieceFasterDownwards = function() {
-        if(!pieceHasReachedAnEnd("bottom")) {
-            clearPiece();
-            piece.y++;
-            drawPiece();
-        }
-    };
-
-    var DROPPING = false;
-
     var dropPiece = function() {
-        if(DROPPING)
         while(!pieceHasReachedAnEnd("bottom")) {
             clearPiece();
             piece.y++;
@@ -288,15 +277,14 @@ window.onload = function() {
         return coordinatesToCheck.some(function(coord) {
             var x = coord.x + piece.x;
             var y = coord.y + piece.y;
-            return spaceAtCoordinatesHasBlockingElement(y, x);
+            return spaceAtCoordinateHasBlockingElement(y, x);
         });
     };
 
     // -------------- SPACE VALIDATION METHODS --------------
 
-    var spaceAtCoordinatesHasBlockingElement = function(y, x) {
-        console.log(y >= matrix.length);
-        return x < 0 || x >= boardWidth || y >= matrix.length || matrix[y][x] === STATIONARY_PIECE_MARKER;
+    var spaceAtCoordinateHasBlockingElement = function(y, x) {
+        return x < 0 || x >= boardWidth || y >= boardHeight || matrix[y][x] === STATIONARY_PIECE_MARKER;
     };
 
     // -------------- PAUSE FUNCTIONALITY METHODS --------------
@@ -377,6 +365,7 @@ window.onload = function() {
                     removeCompletedRows();
                     if(topRowHasAStationaryPiece()) {
                         gameOver = true;
+                        console.log("game over");
                         return;
                     }
                     generateNextPiece();
@@ -386,7 +375,7 @@ window.onload = function() {
                 steps++;
             }
            game();
-       }, timeoutIncrement);
+       }, getTimeout());
     };
 
     window.game = game;
