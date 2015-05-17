@@ -16,13 +16,13 @@
     "url": "https://github.com/roscioli/tetris/issues"
   },
   "homepage": "https://github.com/roscioli/tetris",
-  "dependencies": {
-    "express": "^4.12.3"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "ejs": "^2.3.1",
+    "express": "^4.12.3",
     "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-copy": "^0.8.0",
     "grunt-contrib-uglify": "~0.5.0",
-    "grunt-remove-logging": "^0.2.0"
+    "request": "^2.55.0"
   }
 }
