@@ -3,15 +3,15 @@ module.exports = function (grunt) {
 		uglify: {
 			my_target: {
 				files: {
-					"tetris.min.js": ["tetris.js"]
+					"public/tetris.min.js": ["tetris.js"]
 				}
 			}
 		},
 		copy: {
 		  main: {
 		    files: [
-      			{expand: true, flatten: true, src: ["tetris.min.js"], dest: "public/", filter: "isFile"}
-		    ],
+      			{expand: true, flatten: false, src: ["bower_components/**"], dest: "public", filter: "isFile"}
+		    ]
 		  }
 		}
 	});

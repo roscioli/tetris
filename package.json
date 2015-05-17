@@ -16,7 +16,9 @@
     "url": "https://github.com/roscioli/tetris/issues"
   },
   "homepage": "https://github.com/roscioli/tetris",
-  "dependencies": {},
+  "dependencies": {
+    "jade": "^1.9.2"
+  },
   "devDependencies": {
     "ejs": "^2.3.1",
     "express": "^4.12.3",
