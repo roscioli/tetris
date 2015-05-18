@@ -36,7 +36,7 @@ window.onload = function() {
             boardWidth: Game.boardWidth,
             boardHeight: Game.boardHeight,
             time: Game.time,
-            timeout: Game.timeout,
+            timeout: getTimeout(),
             timeoutIncrement: Game.timeoutIncrement,
             steps: Game.steps,
             paused: Game.paused,
@@ -167,9 +167,7 @@ window.onload = function() {
     };
 
     var getTimeout = function() {
-        return Game.timeout > Game.timeoutIncrement ?
-            Game.timeout - ((Game.level - 1) * Game.timeoutIncrement)
-            : Game.timeoutIncrement;
+        return Math.max(Game.timeout - ((Game.level-1) * Game.timeoutIncrement), Game.timeoutIncrement);
     };
 
     var updateLevel = function() {
@@ -398,8 +396,6 @@ window.onload = function() {
            game();
        }, getTimeout());
     };
-
-    window.game = game;
 
     var startGame = function() {
         initializeGameVariables();
