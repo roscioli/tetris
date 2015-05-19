@@ -2,19 +2,23 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>Zen Tetris</title>
+    <title>zen tetris</title>
     <script type="text/javascript" src="tetris.js"></script>
     <link rel="stylesheet" type="text/css" href="bower_components/bootstrap/dist/css/bootstrap.css">
+    <style type="text/css">
+    	body {
+    		font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    	}
+    </style>
 </head>
 <body class="container">
-	<div class="row"><h1>Zen Tetris</h1></div>
+	<div class="row text-center"><h1>zen tetris</h1></div>
 	<div class="row">
-		<div class="col-xs-4"></div>
-		<div class="col-xs-5"><canvas id="tetris"></canvas></div>
-		<div class="col-xs-3">
-			<h5>Next:</h5>
+		<div class="col-xs-4 text-center col-xs-offset-4">
+			<canvas id="tetris"></canvas>
 			<canvas id="next"></canvas>
 		</div>
 	</div>
+	<div class="row text-center"><h3 id="score"></h3></div>
 </body>
 </html>

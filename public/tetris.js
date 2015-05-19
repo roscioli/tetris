@@ -184,6 +184,10 @@ window.onload = function() {
 
     // -------------- GAME UPKEEP: SCORE & LEVEL METHODS --------------
 
+    var showScore = function() {
+        document.getElementById("score").innerHTML = Game.score;
+    };
+
     var updateScore = function() {
         var SCORES = [0, 40, 100, 300, 1200];
         var numberOfCompletedRows = getNumberOfCompletedRows();
@@ -369,7 +373,7 @@ window.onload = function() {
                 : context.fillStyle = !!next ? next.color : getPieceColor();
 
             (next || Game.piece).coordinates.forEach(function(coord) {
-                var x = ((!!next ? 1 : Game.piece.x) + coord.x) * blockSize;
+                var x = ((!!next ? .5 : Game.piece.x) + coord.x) * blockSize;
                 var y = ((!!next ? 1 : Game.piece.y) + coord.y) * blockSize;
                 context.fillRect(x, y, blockSize, blockSize);
             });
@@ -390,7 +394,7 @@ window.onload = function() {
         htmlId: "next", 
         width: PIECES.reduce(function(prev, piece) { 
             return Math.max(prev, getMaxDimensionOfCoordinates(piece.coordinates, "x"));
-        }, 0) + 2,
+        }, 0) + 1,
         height: PIECES.reduce(function(prev, piece) { 
             return Math.max(prev, getMaxDimensionOfCoordinates(piece.coordinates, "y"));
         }, 0) + 2,
@@ -400,6 +404,7 @@ window.onload = function() {
     // -------------- GAME METHODS --------------
 
     var game = function() {
+        showScore();
         window.setTimeout(function() {
             if(!Game.paused) {
                 if(Game.gameOver) return;
