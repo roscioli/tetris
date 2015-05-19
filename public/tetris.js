@@ -335,14 +335,17 @@ window.onload = function() {
 
     // -------------- DRAWING METHODS --------------
 
-    var GameCanvas = function() {
+    var Canvas = function(params) {
+
+        if(!params) params = {};
 
         var blockSize = 30;
-        var canvas = document.getElementById("tetris");
-        canvas.width = blockSize * Game.boardWidth;
-        canvas.height = blockSize * (Game.boardHeight);
+        var canvas = document.getElementById(params.htmlId || "tetris");
+        canvas.width = blockSize * (params.width || Game.boardWidth);
+        canvas.height = blockSize * (params.height || Game.boardHeight);
         window.context = canvas.getContext("2d");
-        var backgroundColor = "#000";
+        var backgroundColor = (params.backgroundColor || "#000");
+        var that = this;
 
         var getPieceColor = function() {
             return Game.piece.color;
@@ -356,6 +359,10 @@ window.onload = function() {
         this.initializeCanvas = function() {
             window.context.fillStyle = backgroundColor;
             window.context.fillRect(0, 0, canvas.width, canvas.height);
+        };
+
+        this.renderNext = function(render) {
+            that.renderPiece(render, true)
         };
 
         this.renderPiece = function(render) {
@@ -380,7 +387,7 @@ window.onload = function() {
         };
     };
 
-    var gameCanvas = new GameCanvas();
+    var gameCanvas = new Canvas();
 
     // -------------- GAME METHODS --------------
 
