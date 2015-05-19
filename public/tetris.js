@@ -67,7 +67,7 @@ window.onload = function() {
             score: Game.score,
             lines: Game.lines,
             level: Game.level,
-            numberOfLinesBeforeNextLevel: Game.numberOfLinesBeforeNextLevel,
+            linesPerLevel: Game.linesPerLevel,
             matrix: Game.matrix
         };
     };
@@ -88,7 +88,7 @@ window.onload = function() {
             score: 0,
             lines: 0,
             level: 1,
-            numberOfLinesBeforeNextLevel: 10,
+            linesPerLevel: 10,
             matrix: [],
             piece: new Piece()
         };
@@ -173,7 +173,7 @@ window.onload = function() {
                 : newMatrix.unshift(row);
         }
         Game.matrix = newMatrixPrefix.concat(newMatrix);
-        CanvasDrawer.renderMatrix();
+        gameCanvas.renderMatrix();
     };
 
     // -------------- GAME UPKEEP: SCORE & LEVEL METHODS --------------
@@ -187,7 +187,7 @@ window.onload = function() {
     };
 
     var getLevel = function() {
-        return Math.floor(Game.lines / Game.numberOfLinesBeforeNextLevel) + 1;
+        return Math.floor(Game.lines / Game.linesPerLevel) + 1;
     };
 
     var getTimeout = function() {
@@ -228,10 +228,10 @@ window.onload = function() {
     var renderPiece = function(action) {
         if(action === "clear") {
             var matrixMarker = 0;
-            CanvasDrawer.clearPiece();
+            gameCanvas.clearPiece();
         } else {
             var matrixMarker = MOVING_PIECE_MARKER;
-            CanvasDrawer.drawPiece("#ffffff");
+            gameCanvas.drawPiece();
         }
         var matrixMarker = action === "clear" ? 0 : MOVING_PIECE_MARKER;
         for(var i = 0; i < Game.piece.coordinates.length; i++) {
@@ -361,7 +361,7 @@ window.onload = function() {
 
     // -------------- DRAWING METHODS --------------
 
-    var _CanvasDrawer = function() {
+    var GameCanvas = function() {
 
         var blockSize = 30;
         var canvas = document.getElementById("tetris");
@@ -372,6 +372,10 @@ window.onload = function() {
 
         var getPieceColor = function() {
             return Game.piece.color;
+        };
+
+        var getNextPieceColor = function() {
+            return Game.piece.next.color;
         };
 
         var getSpaceColor = function(y, x) {
@@ -411,7 +415,7 @@ window.onload = function() {
         };
     };
 
-    var CanvasDrawer = new _CanvasDrawer();
+    var gameCanvas = new GameCanvas();
 
     // -------------- GAME METHODS --------------
 
@@ -444,7 +448,7 @@ window.onload = function() {
 
     var startGame = function() {
         initializeGameVariables();
-        CanvasDrawer.initializeCanvas();
+        gameCanvas.initializeCanvas();
         loadEmptyBoard();
         initializeEventHandlers();
         generateFirstPiece();

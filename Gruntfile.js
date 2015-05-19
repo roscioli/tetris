@@ -3,7 +3,7 @@ module.exports = function (grunt) {
 		uglify: {
 			my_target: {
 				files: {
-					"public/tetris.min.js": ["tetris.js"]
+					"public/tetris.min.js": ["public/tetris.js"]
 				}
 			}
 		},
