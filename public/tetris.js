@@ -337,20 +337,12 @@ window.onload = function() {
         if(!params) params = {};
 
         var blockSize = 30;
-        console.log(params);
-        this.canvas = document.getElementById(params.htmlId || "tetris");
-        this.canvas.width = blockSize * (params.width || Game.boardWidth);
-        this.canvas.height = blockSize * (params.height || Game.boardHeight);
-        this.context = this.canvas.getContext("2d");
-        this.backgroundColor = (params.backgroundColor || "#000");
+        var canvas = document.getElementById(params.htmlId || "tetris");
+        canvas.width = blockSize * (params.width || Game.boardWidth);
+        canvas.height = blockSize * (params.height || Game.boardHeight);
+        var context = canvas.getContext("2d");
+        var backgroundColor = (params.backgroundColor || "#000");
         var that = this;
-        // console.log(this.canvas);
-
-        this.getCanvas = function() {
-            console.log(that.canvas.width);
-            console.log(that.canvas.height);
-            console.log("==");
-        };
 
         var getPieceColor = function() {
             return Game.piece.color;
@@ -358,37 +350,36 @@ window.onload = function() {
 
         var getSpaceColor = function(y, x) {
             var space = Game.matrix[y][x];
-            return spaceIsABlock(space) ? space : that.backgroundColor;
+            return spaceIsABlock(space) ? space : backgroundColor;
         };
 
         this.initializeCanvas = function() {
-            that.context.fillStyle = that.backgroundColor;
-            that.context.fillRect(0, 0, that.canvas.width, that.canvas.height);
+            context.fillStyle = backgroundColor;
+            context.fillRect(0, 0, canvas.width, canvas.height);
         };
 
         this.showNext = function(next) {
-            console.log(next);
             that.initializeCanvas();
             that.renderPiece(true, next)
         };
 
         this.renderPiece = function(render, next) {
 
-            !render ? that.context.fillStyle = that.backgroundColor
-                : that.context.fillStyle = !!next ? next.color : getPieceColor();
+            !render ? context.fillStyle = backgroundColor
+                : context.fillStyle = !!next ? next.color : getPieceColor();
 
             (next || Game.piece).coordinates.forEach(function(coord) {
                 var x = ((!!next ? 1 : Game.piece.x) + coord.x) * blockSize;
                 var y = ((!!next ? 1 : Game.piece.y) + coord.y) * blockSize;
-                that.context.fillRect(x, y, blockSize, blockSize);
+                context.fillRect(x, y, blockSize, blockSize);
             });
         };
 
         this.renderMatrix = function() {
             for(var y = 0; y < Game.boardHeight; y++) {
                 for(var x = 0; x < Game.boardWidth; x++) {
-                    that.context.fillStyle = getSpaceColor(y, x);
-                    that.context.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+                    context.fillStyle = getSpaceColor(y, x);
+                    context.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
                 };
             }
         };
@@ -405,9 +396,6 @@ window.onload = function() {
         }, 0) + 2,
         backgroundColor: "#FFF"
     });
-
-    gameCanvas.getCanvas();
-    nextCanvas.getCanvas();
 
     // -------------- GAME METHODS --------------
 
