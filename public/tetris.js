@@ -53,18 +53,9 @@ window.onload = function() {
     var MOVING_PIECE_MARKER = "*";
 
     var MOVEMENT = {
-        down: {
-            axis: "y",
-            addition: 1
-        },
-        right: {
-            axis: "x",
-            addition: 1
-        },
-        left: {
-            axis: "x",
-            addition: -1
-        }
+        down: { axis: "y", addition: 1},
+        right: { axis: "x", addition: 1},
+        left: { axis: "x", addition: -1}
     };
 
     // -------------- DEBUG METHODS --------------
@@ -75,7 +66,7 @@ window.onload = function() {
             boardHeight: Game.boardHeight,
             time: Game.time,
             timeout: getTimeout(),
-            timeoutIncrement: Game.timeoutIncrement,
+            levelSpeedup: Game.levelSpeedup,
             steps: Game.steps,
             paused: Game.paused,
             gameOver: Game.gameOver,
@@ -96,7 +87,7 @@ window.onload = function() {
             boardHeight: 15,
             time: Date.now(),
             timeout: 1000,
-            timeoutIncrement: 50,
+            levelSpeedup: 50,
             steps: 0,
             paused: false,
             gameOver: false,
@@ -206,7 +197,7 @@ window.onload = function() {
     };
 
     var getTimeout = function() {
-        return Math.max(Game.timeout - ((Game.level-1) * Game.timeoutIncrement), Game.timeoutIncrement);
+        return Math.max(Game.timeout - ((Game.level-1) * Game.levelSpeedup), Game.levelSpeedup);
     };
 
     var updateLevel = function() {
@@ -238,34 +229,30 @@ window.onload = function() {
         generateNextPiece();
     };
 
-    var renderPiece = function(action) {
-        if(action === "clear") {
+    var renderPiece = function(render) {
+        if(!render) {
             var matrixMarker = 0;
-            gameCanvas.clearPiece();
+            gameCanvas.renderPiece(false);
         } else {
             var matrixMarker = MOVING_PIECE_MARKER;
-            gameCanvas.drawPiece();
+            gameCanvas.renderPiece(true);
         }
-        var matrixMarker = action === "clear" ? 0 : MOVING_PIECE_MARKER;
+        var matrixMarker = !render ? 0 : MOVING_PIECE_MARKER;
         for(var i = 0; i < Game.piece.coordinates.length; i++) {
-            var coordinate = Game.piece.coordinates[i];
-            if(Game.piece.y + coordinate.y < 0) continue;
-            Game.matrix[Game.piece.y + coordinate.y][Game.piece.x + coordinate.x] = matrixMarker;
+            var coord = Game.piece.coordinates[i];
+            if(Game.piece.y + coord.y < 0) continue;
+            Game.matrix[Game.piece.y + coord.y][Game.piece.x + coord.x] = matrixMarker;
         }
     };
 
-    var clearPiece = function() {
-        renderPiece("clear");
-    };
+    var clearPiece = function() { renderPiece(false); };
 
-    var drawPiece = function() {
-        renderPiece("draw");
-    };
+    var drawPiece = function() { renderPiece(true); };
 
     var convertMovingPieceToStationaryPiece = function() {
-        Game.piece.coordinates.forEach(function(coordinate) {
-            if(Game.piece.y + coordinate.y < 0) return;
-            Game.matrix[coordinate.y + Game.piece.y][coordinate.x + Game.piece.x] = Game.piece.color;
+        Game.piece.coordinates.forEach(function(coord) {
+            if(Game.piece.y + coord.y < 0) return;
+            Game.matrix[coord.y + Game.piece.y][coord.x + Game.piece.x] = Game.piece.color;
         });
     };
 
@@ -371,21 +358,16 @@ window.onload = function() {
             window.context.fillRect(0, 0, canvas.width, canvas.height);
         };
 
-        this.drawPiece = function(clearOrDraw) {
+        this.renderPiece = function(render) {
 
-            clearOrDraw === "clear" ?
-                window.context.fillStyle = backgroundColor
+            !render ? window.context.fillStyle = backgroundColor
                 : window.context.fillStyle = getPieceColor();
 
-            Game.piece.coordinates.forEach(function(coordinate) {
-                var x = (Game.piece.x + coordinate.x) * blockSize;
-                var y = (Game.piece.y + coordinate.y) * blockSize;
+            Game.piece.coordinates.forEach(function(coord) {
+                var x = (Game.piece.x + coord.x) * blockSize;
+                var y = (Game.piece.y + coord.y) * blockSize;
                 window.context.fillRect(x, y, blockSize, blockSize);
             });
-        };
-
-        this.clearPiece = function() {
-            this.drawPiece("clear");
         };
 
         this.renderMatrix = function() {
