@@ -16,15 +16,15 @@ window.onload = function() {
         coordinates: []
     };
 
-    var PIECES = {
-        square: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(1,0), new Coordinate(1,1)],
-        rightL: [new Coordinate(1,0), new Coordinate(1,1) ,new Coordinate(1,2), new Coordinate(0,2)],
-        rightS: [new Coordinate(0,0), new Coordinate(0,1) ,new Coordinate(1,1), new Coordinate(1,2)],
-        leftL:  [new Coordinate(0,0), new Coordinate(1,0), new Coordinate(1,1), new Coordinate(1,2)],
-        leftS:  [new Coordinate(1,0), new Coordinate(1,1) ,new Coordinate(0,1), new Coordinate(0,2)],
-        line:   [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(0,2), new Coordinate(0,3)],
-        three:  [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(0,2), new Coordinate(1,1)]
-    };
+    var PIECES = [
+        {coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(1,0), new Coordinate(1,1)], color: "#4F3"},
+        {coordinates: [new Coordinate(1,0), new Coordinate(1,1), new Coordinate(1,2), new Coordinate(0,2)], color: "#8CC"},
+        {coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(1,1), new Coordinate(1,2)], color: "#161"},
+        {coordinates: [new Coordinate(0,0), new Coordinate(1,0), new Coordinate(1,1), new Coordinate(1,2)], color: "#309"},
+        {coordinates: [new Coordinate(1,0), new Coordinate(1,1), new Coordinate(0,1), new Coordinate(0,2)], color: "#F4A"},
+        {coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(0,2), new Coordinate(0,3)], color: "#5A2"},
+        {coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(0,2), new Coordinate(1,1)], color: "#39B"}
+    ];
 
     var STATIONARY_PIECE_MARKER = 1;
     var MOVING_PIECE_MARKER = "*";
@@ -122,7 +122,7 @@ window.onload = function() {
     // -------------- BOARD VALIDATION METHODS --------------
 
     var topRowHasAStationaryPiece = function() {
-        return Game.matrix[0].contains(STATIONARY_PIECE_MARKER);
+        return Game.matrix[0].some(spaceIsABlock);
     };
 
     // -------------- BOARD UPKEEP: ROW DELETION METHODS --------------
@@ -183,11 +183,13 @@ window.onload = function() {
 
     var generateNextPiece = function() {
         piece.y = 0;
-        var possibilities = Object.keys(PIECES);
-        piece.coordinates = PIECES[possibilities[Math.floor(Math.random() * possibilities.length)]];
+        var index = Math.floor(Math.random() * PIECES.length);
+        piece.coordinates = PIECES[index].coordinates;
+        piece.color = PIECES[index].color;
         var pieceWidth = piece.coordinates.reduce(function(prev, curr) { return Math.max(prev, curr.x); }, 0);
         piece.x = Math.floor((Game.boardWidth - pieceWidth) / 2);
         drawPiece();
+        console.log(piece);
     };
 
     var renderPiece = function(action) {
@@ -215,7 +217,7 @@ window.onload = function() {
 
     var convertMovingPieceToStationaryPiece = function() {
         for(var i = 0; i < piece.coordinates.length; i++) {
-            Game.matrix[piece.coordinates[i].y + piece.y][piece.coordinates[i].x + piece.x] = STATIONARY_PIECE_MARKER;
+            Game.matrix[piece.coordinates[i].y + piece.y][piece.coordinates[i].x + piece.x] = piece.color;
         }
     };
 
@@ -237,7 +239,7 @@ window.onload = function() {
             return prev.x > curr.x ? prev : curr
         }, piece.coordinates[0]).x;
         rotatedPiece = rotatedPiece.map(function(coord) { return new Coordinate(coord.y + yOffset, coord.x) });
-        if(rotatedPiece.every(function(coord) { return !spaceIsBlocked(coord.y + piece.y, coord.x + piece.x) })) {
+        if(rotatedPiece.every(function(coord) { return !spaceIsOffLimits(coord.y + piece.y, coord.x + piece.x) })) {
             clearPiece();
             piece.coordinates = rotatedPiece;
             drawPiece();
@@ -294,14 +296,18 @@ window.onload = function() {
         return coordinatesToCheck.some(function(coord) {
             var x = coord.x + piece.x;
             var y = coord.y + piece.y;
-            return spaceIsBlocked(y, x);
+            return spaceIsOffLimits(y, x);
         });
     };
 
-    // -------------- SPACE VALIDATION METHODS --------------
+    // -------------- SPACE QUERYING METHODS --------------
 
-    var spaceIsBlocked = function(y, x) {
-        return x < 0 || x >= Game.boardWidth || y >= Game.boardHeight || Game.matrix[y][x] === STATIONARY_PIECE_MARKER;
+    var spaceIsOffLimits = function(y, x) {
+        return x < 0 || x >= Game.boardWidth || y >= Game.boardHeight || spaceIsABlock(Game.matrix[y][x]);
+    };
+
+    var spaceIsABlock = function(space) {
+        return space !== MOVING_PIECE_MARKER && space !== 0;
     };
 
     // -------------- PAUSE FUNCTIONALITY METHODS --------------
@@ -320,10 +326,14 @@ window.onload = function() {
         canvas.height = blockSize * (Game.boardHeight);
         window.context = canvas.getContext("2d");
         var backgroundColor = "#000000";
-        var pieceColor = "rebeccapurple"
 
         var getPieceColor = function() {
-            return pieceColor;
+            return piece.color;
+        };
+
+        var getSpaceColor = function(y, x) {
+            var space = Game.matrix[y][x];
+            return spaceIsABlock(space) ? space : backgroundColor;
         };
 
         this.initializeCanvas = function() {
@@ -353,13 +363,14 @@ window.onload = function() {
         this.renderMatrix = function() {
             for(var y = 0; y < Game.boardHeight; y++) {
                 for(var x = 0; x < Game.boardWidth; x++) {
-                    switch(Game.matrix[y][x]) {
-                        case STATIONARY_PIECE_MARKER:
-                            window.context.fillStyle = getPieceColor();
-                            break;
-                        default:
-                            window.context.fillStyle = backgroundColor;
-                    }
+                    window.context.fillStyle = getSpaceColor(y, x);
+                    // switch(Game.matrix[y][x]) {
+                    //     case STATIONARY_PIECE_MARKER:
+                    //         window.context.fillStyle = getPieceColor();
+                    //         break;
+                    //     default:
+                    //         window.context.fillStyle = backgroundColor;
+                    // }
                     window.context.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
                 };
             }
