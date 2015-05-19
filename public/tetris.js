@@ -26,7 +26,6 @@ window.onload = function() {
         {coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(0,2), new Coordinate(1,1)], color: "#39B"}
     ];
 
-    var STATIONARY_PIECE_MARKER = 1;
     var MOVING_PIECE_MARKER = "*";
 
     // -------------- DEBUG METHODS --------------
@@ -174,8 +173,8 @@ window.onload = function() {
         var newlyCalculatedLevel = getLevel();
         if(newlyCalculatedLevel > Game.level) {
             Game.level = newlyCalculatedLevel;
-            console.log("  Game.level: " + Game.level);
-            console.log("Game.timeout: " + getTimeout());
+            console.log("  level: " + Game.level);
+            console.log("timeout: " + getTimeout());
         }
     };
 
@@ -225,24 +224,20 @@ window.onload = function() {
 
     // -------------- PIECE ROTATION METHODS --------------
 
-    var copyPieceCoordinates = function() {
-        var copy = [];
-        for(var i = 0; i < piece.coordinates.length; i++) {
-            var coord = piece.coordinates[i];
-            copy.push(new Coordinate(coord.y, coord.x));
-        }
-        return copy;
-    };
-
     var rotatePiece = function() {
-        var rotatedPiece = piece.coordinates.map(function(coord) { return new Coordinate(0 - coord.x, coord.y) });
-        var yOffset = Math.min(piece.x, getMaxDimensionOfCoordinates(piece.coordinates, "x"));
-        rotatedPiece = rotatedPiece.map(function(coord) { return new Coordinate(coord.y + yOffset, coord.x) });
-        if(rotatedPiece.every(function(coord) { return !spaceIsOffLimits(coord.y + piece.y, coord.x + piece.x) })) {
+        var rotatedPiece = {
+            coordinates: piece.coordinates.map(function(coord) { return new Coordinate(0 - coord.x, coord.y) }),
+            x: piece.x
+        }
+        var yOffset = getMaxDimensionOfCoordinates(piece.coordinates, "x");
+        rotatedPiece.coordinates = rotatedPiece.coordinates.map(function(coord) { return new Coordinate(coord.y + yOffset, coord.x) });
+        var width = getMaxDimensionOfCoordinates(rotatedPiece.coordinates, "x");
+        while(rotatedPiece.x + width >= Game.boardWidth) rotatedPiece.x--;
+        if(rotatedPiece.coordinates.every(function(coord) { return !spaceIsOffLimits(coord.y + piece.y, coord.x + rotatedPiece.x) })) {
             clearPiece();
-            piece.coordinates = rotatedPiece;
+            piece.x = rotatedPiece.x;
+            piece.coordinates = rotatedPiece.coordinates;
             drawPiece();
-            console.log(piece);
         }
     };
 
@@ -331,7 +326,7 @@ window.onload = function() {
         canvas.width = blockSize * Game.boardWidth;
         canvas.height = blockSize * (Game.boardHeight);
         window.context = canvas.getContext("2d");
-        var backgroundColor = "#000000";
+        var backgroundColor = "#000";
 
         var getPieceColor = function() {
             return piece.color;
@@ -353,11 +348,11 @@ window.onload = function() {
                 window.context.fillStyle = backgroundColor
                 : window.context.fillStyle = getPieceColor();
 
-            for(var i = 0; i < piece.coordinates.length; i++) {
-                var x = (piece.x + piece.coordinates[i].x) * blockSize;
-                var y = (piece.y + piece.coordinates[i].y) * blockSize;
+            piece.coordinates.forEach(function(coordinate) {
+                var x = (piece.x + coordinate.x) * blockSize;
+                var y = (piece.y + coordinate.y) * blockSize;
                 window.context.fillRect(x, y, blockSize, blockSize);
-            }
+            });
         };
 
         this.clearPiece = function() {
@@ -379,7 +374,7 @@ window.onload = function() {
     // -------------- GAME METHODS --------------
 
     var game = function() {
-       window.setTimeout(function() {
+        window.setTimeout(function() {
             if(!Game.paused) {
                 if(Game.gameOver) return;
                 Game.time = Date.now();
@@ -401,8 +396,8 @@ window.onload = function() {
                 }
                 Game.steps++;
             }
-           game();
-       }, getTimeout());
+            game();
+        }, getTimeout());
     };
 
     var startGame = function() {
