@@ -217,6 +217,7 @@ window.onload = function() {
         var index = Math.floor(Math.random() * PIECES.length);
         Game.piece.next.coordinates = PIECES[index].coordinates;
         Game.piece.next.color = PIECES[index].color;
+        nextCanvas.showNext(Game.piece.next);
         var width = getMaxDimensionOfCoordinates(Game.piece.next.coordinates, "x");
         var height = getMaxDimensionOfCoordinates(Game.piece.next.coordinates, "y");
         Game.piece.next.y = 0 - height;
@@ -230,13 +231,9 @@ window.onload = function() {
     };
 
     var renderPiece = function(render) {
-        if(!render) {
-            var matrixMarker = 0;
-            gameCanvas.renderPiece(false);
-        } else {
-            var matrixMarker = MOVING_PIECE_MARKER;
-            gameCanvas.renderPiece(true);
-        }
+        if(!render) { var matrixMarker = 0; } 
+        else { var matrixMarker = MOVING_PIECE_MARKER; }
+        gameCanvas.renderPiece(!!render);
         var matrixMarker = !render ? 0 : MOVING_PIECE_MARKER;
         for(var i = 0; i < Game.piece.coordinates.length; i++) {
             var coord = Game.piece.coordinates[i];
@@ -340,12 +337,20 @@ window.onload = function() {
         if(!params) params = {};
 
         var blockSize = 30;
-        var canvas = document.getElementById(params.htmlId || "tetris");
-        canvas.width = blockSize * (params.width || Game.boardWidth);
-        canvas.height = blockSize * (params.height || Game.boardHeight);
-        window.context = canvas.getContext("2d");
-        var backgroundColor = (params.backgroundColor || "#000");
+        console.log(params);
+        this.canvas = document.getElementById(params.htmlId || "tetris");
+        this.canvas.width = blockSize * (params.width || Game.boardWidth);
+        this.canvas.height = blockSize * (params.height || Game.boardHeight);
+        this.context = this.canvas.getContext("2d");
+        this.backgroundColor = (params.backgroundColor || "#000");
         var that = this;
+        // console.log(this.canvas);
+
+        this.getCanvas = function() {
+            console.log(that.canvas.width);
+            console.log(that.canvas.height);
+            console.log("==");
+        };
 
         var getPieceColor = function() {
             return Game.piece.color;
@@ -353,41 +358,56 @@ window.onload = function() {
 
         var getSpaceColor = function(y, x) {
             var space = Game.matrix[y][x];
-            return spaceIsABlock(space) ? space : backgroundColor;
+            return spaceIsABlock(space) ? space : that.backgroundColor;
         };
 
         this.initializeCanvas = function() {
-            window.context.fillStyle = backgroundColor;
-            window.context.fillRect(0, 0, canvas.width, canvas.height);
+            that.context.fillStyle = that.backgroundColor;
+            that.context.fillRect(0, 0, that.canvas.width, that.canvas.height);
         };
 
-        this.renderNext = function(render) {
-            that.renderPiece(render, true)
+        this.showNext = function(next) {
+            console.log(next);
+            that.initializeCanvas();
+            that.renderPiece(true, next)
         };
 
-        this.renderPiece = function(render) {
+        this.renderPiece = function(render, next) {
 
-            !render ? window.context.fillStyle = backgroundColor
-                : window.context.fillStyle = getPieceColor();
+            !render ? that.context.fillStyle = that.backgroundColor
+                : that.context.fillStyle = !!next ? next.color : getPieceColor();
 
-            Game.piece.coordinates.forEach(function(coord) {
-                var x = (Game.piece.x + coord.x) * blockSize;
-                var y = (Game.piece.y + coord.y) * blockSize;
-                window.context.fillRect(x, y, blockSize, blockSize);
+            (next || Game.piece).coordinates.forEach(function(coord) {
+                var x = ((!!next ? 1 : Game.piece.x) + coord.x) * blockSize;
+                var y = ((!!next ? 1 : Game.piece.y) + coord.y) * blockSize;
+                that.context.fillRect(x, y, blockSize, blockSize);
             });
         };
 
         this.renderMatrix = function() {
             for(var y = 0; y < Game.boardHeight; y++) {
                 for(var x = 0; x < Game.boardWidth; x++) {
-                    window.context.fillStyle = getSpaceColor(y, x);
-                    window.context.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+                    that.context.fillStyle = getSpaceColor(y, x);
+                    that.context.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
                 };
             }
         };
     };
 
     var gameCanvas = new Canvas();
+    var nextCanvas = new Canvas({
+        htmlId: "next", 
+        width: PIECES.reduce(function(prev, piece) { 
+            return Math.max(prev, getMaxDimensionOfCoordinates(piece.coordinates, "x"));
+        }, 0) + 2,
+        height: PIECES.reduce(function(prev, piece) { 
+            return Math.max(prev, getMaxDimensionOfCoordinates(piece.coordinates, "y"));
+        }, 0) + 2,
+        backgroundColor: "#FFF"
+    });
+
+    gameCanvas.getCanvas();
+    nextCanvas.getCanvas();
 
     // -------------- GAME METHODS --------------
 
