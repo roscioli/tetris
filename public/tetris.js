@@ -9,21 +9,45 @@ window.onload = function() {
         this.x = x;
     };
 
-    var piece = {
-        x: 0,
-        y: 0,
-        color: "",
-        coordinates: []
+    var Piece = function(piece) {
+        if(!piece) {
+            this.x = 0;
+            this.y = 0;
+            this.color = "";
+            this.coordinates = [];
+            this.next = null; //
+        } else {
+            this.x = piece.x;
+            this.y = piece.y;
+            this.color = piece.color;
+            this.coordinates = piece.coordinates;
+            this.next = piece.next;
+        }
     };
 
     var PIECES = [
-        {coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(1,0), new Coordinate(1,1)], color: "#4F3"},
-        {coordinates: [new Coordinate(1,0), new Coordinate(1,1), new Coordinate(1,2), new Coordinate(0,2)], color: "#8CC"},
-        {coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(1,1), new Coordinate(1,2)], color: "#161"},
-        {coordinates: [new Coordinate(0,0), new Coordinate(1,0), new Coordinate(1,1), new Coordinate(1,2)], color: "#309"},
-        {coordinates: [new Coordinate(1,0), new Coordinate(1,1), new Coordinate(0,1), new Coordinate(0,2)], color: "#F4A"},
-        {coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(0,2), new Coordinate(0,3)], color: "#5A2"},
-        {coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(0,2), new Coordinate(1,1)], color: "#39B"}
+        {
+            coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(1,0), new Coordinate(1,1)], 
+            color: "#4F3"
+        },{
+            coordinates: [new Coordinate(1,0), new Coordinate(1,1), new Coordinate(1,2), new Coordinate(0,2)], 
+            color: "#8CC"
+        },{
+            coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(1,1), new Coordinate(1,2)], 
+            color: "#161"
+        },{
+            coordinates: [new Coordinate(0,0), new Coordinate(1,0), new Coordinate(1,1), new Coordinate(1,2)], 
+            color: "#309"
+        },{
+            coordinates: [new Coordinate(1,0), new Coordinate(1,1), new Coordinate(0,1), new Coordinate(0,2)], 
+            color: "#F4A"
+        },{
+            coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(0,2), new Coordinate(0,3)], 
+            color: "#5A2"
+        },{
+            coordinates: [new Coordinate(0,0), new Coordinate(0,1), new Coordinate(0,2), new Coordinate(1,1)], 
+            color: "#39B"
+        }
     ];
 
     var MOVING_PIECE_MARKER = "*";
@@ -65,7 +89,8 @@ window.onload = function() {
             lines: 0,
             level: 1,
             numberOfLinesBeforeNextLevel: 10,
-            matrix: []
+            matrix: [],
+            piece: new Piece()
         };
     };
 
@@ -181,14 +206,23 @@ window.onload = function() {
     // -------------- PIECE GENERATION, TRANSFORMATION, & DESTRUCTION METHODS --------------
 
     var generateNextPiece = function() {
+        Game.piece = new Piece(Game.piece.next);
+        if(!Game.piece.next) Game.piece.next = new Piece();
         var index = Math.floor(Math.random() * PIECES.length);
-        piece.coordinates = PIECES[index].coordinates;
-        piece.color = PIECES[index].color;
-        var width = getMaxDimensionOfCoordinates(piece.coordinates, "x");
-        var height = getMaxDimensionOfCoordinates(piece.coordinates, "y");
-        piece.y = 0 - height;
-        piece.x = Math.floor((Game.boardWidth - width) / 2);
+        Game.piece.next.coordinates = PIECES[index].coordinates;
+        Game.piece.next.color = PIECES[index].color;
+        var width = getMaxDimensionOfCoordinates(Game.piece.next.coordinates, "x");
+        var height = getMaxDimensionOfCoordinates(Game.piece.next.coordinates, "y");
+        Game.piece.next.y = 0 - height;
+        Game.piece.next.x = Math.floor((Game.boardWidth - width) / 2);
         drawPiece();
+        console.log("Next piece: ");
+        console.log(Game.piece.next);
+    };
+
+    var generateFirstPiece = function() {
+        generateNextPiece();
+        generateNextPiece();
     };
 
     var renderPiece = function(action) {
@@ -200,10 +234,10 @@ window.onload = function() {
             CanvasDrawer.drawPiece("#ffffff");
         }
         var matrixMarker = action === "clear" ? 0 : MOVING_PIECE_MARKER;
-        for(var i = 0; i < piece.coordinates.length; i++) {
-            var coordinate = piece.coordinates[i];
-            if(piece.y + coordinate.y < 0) continue;
-            Game.matrix[piece.y + coordinate.y][piece.x + coordinate.x] = matrixMarker;
+        for(var i = 0; i < Game.piece.coordinates.length; i++) {
+            var coordinate = Game.piece.coordinates[i];
+            if(Game.piece.y + coordinate.y < 0) continue;
+            Game.matrix[Game.piece.y + coordinate.y][Game.piece.x + coordinate.x] = matrixMarker;
         }
     };
 
@@ -216,9 +250,9 @@ window.onload = function() {
     };
 
     var convertMovingPieceToStationaryPiece = function() {
-        piece.coordinates.forEach(function(coordinate) {
-            if(piece.y + coordinate.y < 0) return;
-            Game.matrix[coordinate.y + piece.y][coordinate.x + piece.x] = piece.color;
+        Game.piece.coordinates.forEach(function(coordinate) {
+            if(Game.piece.y + coordinate.y < 0) return;
+            Game.matrix[coordinate.y + Game.piece.y][coordinate.x + Game.piece.x] = Game.piece.color;
         });
     };
 
@@ -226,17 +260,24 @@ window.onload = function() {
 
     var rotatePiece = function() {
         var rotatedPiece = {
-            coordinates: piece.coordinates.map(function(coord) { return new Coordinate(0 - coord.x, coord.y) }),
-            x: piece.x
+            coordinates: Game.piece.coordinates.map(function(coord) {
+                return new Coordinate(0 - coord.x, coord.y)
+            }),
+            x: Game.piece.x
         }
-        var yOffset = getMaxDimensionOfCoordinates(piece.coordinates, "x");
-        rotatedPiece.coordinates = rotatedPiece.coordinates.map(function(coord) { return new Coordinate(coord.y + yOffset, coord.x) });
+        var yOffset = getMaxDimensionOfCoordinates(Game.piece.coordinates, "x");
+        rotatedPiece.coordinates = rotatedPiece.coordinates.map(function(coord) {
+            return new Coordinate(coord.y + yOffset, coord.x)
+        });
         var width = getMaxDimensionOfCoordinates(rotatedPiece.coordinates, "x");
         while(rotatedPiece.x + width >= Game.boardWidth) rotatedPiece.x--;
-        if(rotatedPiece.coordinates.every(function(coord) { return !spaceIsOffLimits(coord.y + piece.y, coord.x + rotatedPiece.x) })) {
+        var everyCoordinateIsValidAfterRotation = rotatedPiece.coordinates.every(function(coord) {
+            return !spaceIsOffLimits(coord.y + Game.piece.y, coord.x + rotatedPiece.x)
+        });
+        if(everyCoordinateIsValidAfterRotation) {
             clearPiece();
-            piece.x = rotatedPiece.x;
-            piece.coordinates = rotatedPiece.coordinates;
+            Game.piece.x = rotatedPiece.x;
+            Game.piece.coordinates = rotatedPiece.coordinates;
             drawPiece();
         }
     };
@@ -246,7 +287,7 @@ window.onload = function() {
     var movePieceDownwards = function() {
         if(!pieceHasReachedAnEnd("bottom")) {
             clearPiece();
-            piece.y++;
+            Game.piece.y++;
             drawPiece();
         }
     };
@@ -254,7 +295,7 @@ window.onload = function() {
     var movePieceLeft = function() {
         if(!pieceHasReachedAnEnd("left")) {
             clearPiece();
-            piece.x--;
+            Game.piece.x--;
             drawPiece();
         }
     };
@@ -262,7 +303,7 @@ window.onload = function() {
     var movePieceRight = function() {
         if(!pieceHasReachedAnEnd("right")) {
             clearPiece();
-            piece.x++;
+            Game.piece.x++;
             drawPiece();
         }
     };
@@ -270,7 +311,7 @@ window.onload = function() {
     var dropPiece = function() {
         while(!pieceHasReachedAnEnd("bottom")) {
             clearPiece();
-            piece.y++;
+            Game.piece.y++;
             drawPiece();
         }
     };
@@ -279,18 +320,18 @@ window.onload = function() {
 
     var pieceHasReachedAnEnd = function(sideToCheck) {
         if(sideToCheck === "right") {
-            var mapper = function(coordinate) { return new Coordinate(coordinate.y, coordinate.x + 1) };
+            var mapper = function(coord) { return new Coordinate(coord.y, coord.x + 1) };
         } else if(sideToCheck === "left") {
-            mapper = function(coordinate) { return new Coordinate(coordinate.y, coordinate.x - 1) };
+            mapper = function(coord) { return new Coordinate(coord.y, coord.x - 1) };
         } else if(sideToCheck === "bottom") {
-            mapper = function(coordinate) { return new Coordinate(coordinate.y + 1, coordinate.x) };
+            mapper = function(coord) { return new Coordinate(coord.y + 1, coord.x) };
         }
 
-        var coordinatesToCheck = piece.coordinates.map(mapper);
+        var coordinatesToCheck = Game.piece.coordinates.map(mapper);
 
         return coordinatesToCheck.some(function(coord) {
-            var x = coord.x + piece.x;
-            var y = coord.y + piece.y;
+            var x = coord.x + Game.piece.x;
+            var y = coord.y + Game.piece.y;
             return spaceIsOffLimits(y, x);
         });
     };
@@ -304,7 +345,8 @@ window.onload = function() {
     // -------------- SPACE QUERYING METHODS --------------
 
     var spaceIsOffLimits = function(y, x) {
-        return x < 0 || x >= Game.boardWidth || y >= Game.boardHeight || (y >= 0 && spaceIsABlock(Game.matrix[y][x]));
+        return x < 0 || x >= Game.boardWidth || y >= Game.boardHeight 
+            || (y >= 0 && spaceIsABlock(Game.matrix[y][x]));
     };
 
     var spaceIsABlock = function(space) {
@@ -329,7 +371,7 @@ window.onload = function() {
         var backgroundColor = "#000";
 
         var getPieceColor = function() {
-            return piece.color;
+            return Game.piece.color;
         };
 
         var getSpaceColor = function(y, x) {
@@ -348,9 +390,9 @@ window.onload = function() {
                 window.context.fillStyle = backgroundColor
                 : window.context.fillStyle = getPieceColor();
 
-            piece.coordinates.forEach(function(coordinate) {
-                var x = (piece.x + coordinate.x) * blockSize;
-                var y = (piece.y + coordinate.y) * blockSize;
+            Game.piece.coordinates.forEach(function(coordinate) {
+                var x = (Game.piece.x + coordinate.x) * blockSize;
+                var y = (Game.piece.y + coordinate.y) * blockSize;
                 window.context.fillRect(x, y, blockSize, blockSize);
             });
         };
@@ -405,7 +447,7 @@ window.onload = function() {
         CanvasDrawer.initializeCanvas();
         loadEmptyBoard();
         initializeEventHandlers();
-        generateNextPiece();
+        generateFirstPiece();
         game();
     };
 
