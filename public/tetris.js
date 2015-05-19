@@ -55,7 +55,7 @@ window.onload = function() {
     var initializeGameVariables = function() {
         Game = {
             boardWidth: 10,
-            boardHeight: 14,
+            boardHeight: 15,
             time: Date.now(),
             timeout: 1000,
             timeoutIncrement: 50,
@@ -182,14 +182,14 @@ window.onload = function() {
     // -------------- PIECE GENERATION, TRANSFORMATION, & DESTRUCTION METHODS --------------
 
     var generateNextPiece = function() {
-        piece.y = 0;
         var index = Math.floor(Math.random() * PIECES.length);
         piece.coordinates = PIECES[index].coordinates;
         piece.color = PIECES[index].color;
-        var pieceWidth = piece.coordinates.reduce(function(prev, curr) { return Math.max(prev, curr.x); }, 0);
-        piece.x = Math.floor((Game.boardWidth - pieceWidth) / 2);
+        var width = getMaxDimensionOfCoordinates(piece.coordinates, "x");
+        var height = getMaxDimensionOfCoordinates(piece.coordinates, "y");
+        piece.y = 0 - height;
+        piece.x = Math.floor((Game.boardWidth - width) / 2);
         drawPiece();
-        console.log(piece);
     };
 
     var renderPiece = function(action) {
@@ -203,6 +203,7 @@ window.onload = function() {
         var matrixMarker = action === "clear" ? 0 : MOVING_PIECE_MARKER;
         for(var i = 0; i < piece.coordinates.length; i++) {
             var coordinate = piece.coordinates[i];
+            if(piece.y + coordinate.y < 0) continue;
             Game.matrix[piece.y + coordinate.y][piece.x + coordinate.x] = matrixMarker;
         }
     };
@@ -216,9 +217,10 @@ window.onload = function() {
     };
 
     var convertMovingPieceToStationaryPiece = function() {
-        for(var i = 0; i < piece.coordinates.length; i++) {
-            Game.matrix[piece.coordinates[i].y + piece.y][piece.coordinates[i].x + piece.x] = piece.color;
-        }
+        piece.coordinates.forEach(function(coordinate) {
+            if(piece.y + coordinate.y < 0) return;
+            Game.matrix[coordinate.y + piece.y][coordinate.x + piece.x] = piece.color;
+        });
     };
 
     // -------------- PIECE ROTATION METHODS --------------
@@ -233,16 +235,14 @@ window.onload = function() {
     };
 
     var rotatePiece = function() {
-        var rotatedPiece = copyPieceCoordinates();
-        rotatedPiece = rotatedPiece.map(function(coord) { return new Coordinate(0 - coord.x, coord.y) });
-        var yOffset = piece.coordinates.reduce(function(prev, curr) {
-            return prev.x > curr.x ? prev : curr
-        }, piece.coordinates[0]).x;
+        var rotatedPiece = piece.coordinates.map(function(coord) { return new Coordinate(0 - coord.x, coord.y) });
+        var yOffset = Math.min(piece.x, getMaxDimensionOfCoordinates(piece.coordinates, "x"));
         rotatedPiece = rotatedPiece.map(function(coord) { return new Coordinate(coord.y + yOffset, coord.x) });
         if(rotatedPiece.every(function(coord) { return !spaceIsOffLimits(coord.y + piece.y, coord.x + piece.x) })) {
             clearPiece();
             piece.coordinates = rotatedPiece;
             drawPiece();
+            console.log(piece);
         }
     };
 
@@ -280,7 +280,7 @@ window.onload = function() {
         }
     };
 
-    // -------------- PIECE VALIDATION METHODS --------------
+    // -------------- PIECE QUERYING METHODS --------------
 
     var pieceHasReachedAnEnd = function(sideToCheck) {
         if(sideToCheck === "right") {
@@ -300,10 +300,16 @@ window.onload = function() {
         });
     };
 
+    // -------------- COORDINATE QUERYING METHODS --------------
+
+    var getMaxDimensionOfCoordinates = function(coordinates, axis) {
+        return coordinates.reduce(function(prev, curr) { return Math.max(prev, curr[axis]); }, 0);
+    };
+
     // -------------- SPACE QUERYING METHODS --------------
 
     var spaceIsOffLimits = function(y, x) {
-        return x < 0 || x >= Game.boardWidth || y >= Game.boardHeight || spaceIsABlock(Game.matrix[y][x]);
+        return x < 0 || x >= Game.boardWidth || y >= Game.boardHeight || (y >= 0 && spaceIsABlock(Game.matrix[y][x]));
     };
 
     var spaceIsABlock = function(space) {
@@ -343,11 +349,9 @@ window.onload = function() {
 
         this.drawPiece = function(clearOrDraw) {
 
-            if(clearOrDraw === "clear") {
-                window.context.fillStyle = backgroundColor;
-            } else {
-                window.context.fillStyle = getPieceColor();
-            }
+            clearOrDraw === "clear" ?
+                window.context.fillStyle = backgroundColor
+                : window.context.fillStyle = getPieceColor();
 
             for(var i = 0; i < piece.coordinates.length; i++) {
                 var x = (piece.x + piece.coordinates[i].x) * blockSize;
@@ -364,13 +368,6 @@ window.onload = function() {
             for(var y = 0; y < Game.boardHeight; y++) {
                 for(var x = 0; x < Game.boardWidth; x++) {
                     window.context.fillStyle = getSpaceColor(y, x);
-                    // switch(Game.matrix[y][x]) {
-                    //     case STATIONARY_PIECE_MARKER:
-                    //         window.context.fillStyle = getPieceColor();
-                    //         break;
-                    //     default:
-                    //         window.context.fillStyle = backgroundColor;
-                    // }
                     window.context.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
                 };
             }
@@ -479,8 +476,6 @@ window.onload = function() {
     };
 
     Array.prototype.sortNumbers = function(array) {
-        return this.sort(function(a, b) {
-            return a - b;
-        });
+        return this.sort(function(a, b) { return a - b; });
     };
 };
