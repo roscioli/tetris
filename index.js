@@ -6,4 +6,4 @@ app.get('/', function(request, response){
     response.sendFile('index.html', { root: __dirname });
 });
 
-app.listen(process.env.PORT || 8080);
+app.listen(!!process.env && !!process.env.PORT ? process.env.PORT : 8080);

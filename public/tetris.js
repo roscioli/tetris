@@ -15,13 +15,15 @@ window.onload = function() {
             this.y = 0;
             this.color = "";
             this.coordinates = [];
-            this.next = null; //
+            this.next = null;
+            this.locked = false;
         } else {
             this.x = piece.x;
             this.y = piece.y;
             this.color = piece.color;
             this.coordinates = piece.coordinates;
             this.next = piece.next;
+            this.locked = piece.locked;
         }
     };
 
@@ -56,26 +58,6 @@ window.onload = function() {
         down: { axis: "y", addition: 1},
         right: { axis: "x", addition: 1},
         left: { axis: "x", addition: -1}
-    };
-
-    // -------------- DEBUG METHODS --------------
-
-    var dumpData = function() {
-        window.DataDump = {
-            boardWidth: Game.boardWidth,
-            boardHeight: Game.boardHeight,
-            time: Game.time,
-            timeout: getTimeout(),
-            levelSpeedup: Game.levelSpeedup,
-            steps: Game.steps,
-            paused: Game.paused,
-            gameOver: Game.gameOver,
-            score: Game.score,
-            lines: Game.lines,
-            level: Game.level,
-            linesPerLevel: Game.linesPerLevel,
-            matrix: Game.matrix
-        };
     };
 
     // -------------- INITIALIZER METHODS --------------
@@ -126,6 +108,8 @@ window.onload = function() {
                 setPause(false);
                 return;
             }
+
+            if(Game.gameOver) return;
 
             switch (e.keyCode) {
                 case 37:
@@ -286,6 +270,7 @@ window.onload = function() {
     // -------------- PIECE MOVEMENT METHODS --------------
 
     var movePiece = function(movement) {
+        if(Game.piece.locked) return;
         if(!pieceHasReachedAnEnd(movement)) {
             clearPiece();
             Game.piece[movement.axis] += movement.addition;
@@ -299,6 +284,7 @@ window.onload = function() {
             Game.piece.y++;
             drawPiece();
         }
+        Game.piece.locked = true;
     };
 
     // -------------- PIECE QUERYING METHODS --------------
