@@ -359,7 +359,7 @@ window.onload = function() {
                 : context.fillStyle = !!next ? next.color : getPieceColor();
 
             (next || Game.piece).coordinates.forEach(function(coord) {
-                var x = ((!!next ? .5 : Game.piece.x) + coord.x) * blockSize;
+                var x = ((!!next ? 0 : Game.piece.x) + coord.x) * blockSize;
                 var y = ((!!next ? 1 : Game.piece.y) + coord.y) * blockSize;
                 context.fillRect(x, y, blockSize, blockSize);
             });
