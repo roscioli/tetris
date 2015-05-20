@@ -177,7 +177,6 @@ window.onload = function() {
         var numberOfCompletedRows = getNumberOfCompletedRows();
         Game.score += SCORES[numberOfCompletedRows] * getLevel();
         Game.lines += numberOfCompletedRows;
-        console.log("score: " + Game.score);
     };
 
     var getLevel = function() {
@@ -205,9 +204,9 @@ window.onload = function() {
         var index = Math.floor(Math.random() * PIECES.length);
         Game.piece.next.coordinates = PIECES[index].coordinates;
         Game.piece.next.color = PIECES[index].color;
-        nextCanvas.showNext(Game.piece.next);
-        var width = getMaxDimensionOfCoordinates(Game.piece.next.coordinates, "x");
-        var height = getMaxDimensionOfCoordinates(Game.piece.next.coordinates, "y");
+        nextCanvas.renderNextPiece(Game.piece.next);
+        var width = getMaxXOfCoordinates(Game.piece.next.coordinates);
+        var height = getMaxYOfCoordinates(Game.piece.next.coordinates);
         Game.piece.next.y = 0 - height;
         Game.piece.next.x = Math.floor((Game.boardWidth - width) / 2);
         drawPiece();
@@ -221,7 +220,7 @@ window.onload = function() {
     var renderPiece = function(render) {
         if(!render) { var matrixMarker = 0; } 
         else { var matrixMarker = MOVING_PIECE_MARKER; }
-        gameCanvas.renderPiece(!!render);
+        gameCanvas.renderPiece(Game.piece, !!render);
         var matrixMarker = !render ? 0 : MOVING_PIECE_MARKER;
         for(var i = 0; i < Game.piece.coordinates.length; i++) {
             var coord = Game.piece.coordinates[i];
@@ -250,11 +249,11 @@ window.onload = function() {
             }),
             x: Game.piece.x
         }
-        var yOffset = getMaxDimensionOfCoordinates(Game.piece.coordinates, "x");
+        var yOffset = getMaxXOfCoordinates(Game.piece.coordinates);
         rotatedPiece.coordinates = rotatedPiece.coordinates.map(function(coord) {
             return new Coordinate(coord.y + yOffset, coord.x)
         });
-        var width = getMaxDimensionOfCoordinates(rotatedPiece.coordinates, "x");
+        var width = getMaxXOfCoordinates(rotatedPiece.coordinates);
         while(rotatedPiece.x + width >= Game.boardWidth) rotatedPiece.x--;
         var everyCoordinateIsValidAfterRotation = rotatedPiece.coordinates.every(function(coord) {
             return !spaceIsOffLimits(coord.y + Game.piece.y, coord.x + rotatedPiece.x)
@@ -303,6 +302,14 @@ window.onload = function() {
         return coordinates.reduce(function(prev, curr) { return Math.max(prev, curr[axis]); }, 0);
     };
 
+    var getMaxXOfCoordinates = function(coordinates) {
+        return getMaxDimensionOfCoordinates(coordinates, "x");
+    };
+
+    var getMaxYOfCoordinates = function(coordinates) {
+        return getMaxDimensionOfCoordinates(coordinates, "y");
+    };
+
     // -------------- SPACE QUERYING METHODS --------------
 
     var spaceIsOffLimits = function(y, x) {
@@ -328,8 +335,8 @@ window.onload = function() {
 
         var blockSize = 30;
         var canvas = document.getElementById(params.htmlId || "tetris");
-        canvas.width = blockSize * (params.width || Game.boardWidth);
-        canvas.height = blockSize * (params.height || Game.boardHeight);
+        canvas.width = blockSize * Game.boardWidth;
+        canvas.height = blockSize * Game.boardHeight;
         var context = canvas.getContext("2d");
         var backgroundColor = (params.backgroundColor || "#000");
         var that = this;
@@ -348,19 +355,21 @@ window.onload = function() {
             context.fillRect(0, 0, canvas.width, canvas.height);
         };
 
-        this.showNext = function(next) {
+        this.renderNextPiece = function() {
+            canvas.width = (getMaxXOfCoordinates(Game.piece.next.coordinates) + 1) * blockSize;
+            canvas.height = (getMaxYOfCoordinates(Game.piece.next.coordinates) + 1) * blockSize;
             that.initializeCanvas();
-            that.renderPiece(true, next)
+            that.renderPiece(Game.piece.next, true);
         };
 
-        this.renderPiece = function(render, next) {
+        this.renderPiece = function(piece, render) {
 
             !render ? context.fillStyle = backgroundColor
-                : context.fillStyle = !!next ? next.color : getPieceColor();
+                : context.fillStyle = piece.color;
 
-            (next || Game.piece).coordinates.forEach(function(coord) {
-                var x = ((!!next ? 0 : Game.piece.x) + coord.x) * blockSize;
-                var y = ((!!next ? 1 : Game.piece.y) + coord.y) * blockSize;
+            piece.coordinates.forEach(function(coord) {
+                var x = (piece.x + coord.x) * blockSize;
+                var y = (piece.y + coord.y) * blockSize;
                 context.fillRect(x, y, blockSize, blockSize);
             });
         };
@@ -378,12 +387,6 @@ window.onload = function() {
     var gameCanvas = new Canvas();
     var nextCanvas = new Canvas({
         htmlId: "next", 
-        width: PIECES.reduce(function(prev, piece) { 
-            return Math.max(prev, getMaxDimensionOfCoordinates(piece.coordinates, "x"));
-        }, 0) + 1,
-        height: PIECES.reduce(function(prev, piece) { 
-            return Math.max(prev, getMaxDimensionOfCoordinates(piece.coordinates, "y"));
-        }, 0) + 2,
         backgroundColor: "#FFF"
     });
 
@@ -403,7 +406,6 @@ window.onload = function() {
                     if(topRowHasAStationaryPiece()) {
                         Game.gameOver = true;
                         alertUserOfGameOver();
-                        dumpData();
                         console.log("game over");
                         return;
                     }
