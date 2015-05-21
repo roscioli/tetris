@@ -363,6 +363,11 @@ window.onload = function() {
             that.renderPiece(Game.piece.next, true);
         };
 
+        this.hide = function() {
+            canvas.width = 0;
+            canvas.height = 0;
+        }
+
         this.renderPiece = function(piece, render) {
 
             !render ? context.fillStyle = backgroundColor
@@ -431,14 +436,19 @@ window.onload = function() {
 
     startGame();
 
+    window.Game = Game;
+
     var alertUserOfGameOver = function() {
+        var message = "Game over"
         if(storeNewHighScore(Game.score)) {
-            console.log("new high score");
-            // say "new high score or something"
+            console.log(1);
+            message = "Highest zen achieved.";
         } else if(storeNewTopScore(Game.score)) {
-            // say "you placed in top five or something"
-            console.log("new top five score");
+            console.log("Nice zen.");
         }
+        nextCanvas.hide();
+        document.getElementById("message").innerHTML = message;
+        console.log(message);
     };
 
     // -------------- SCORE PERSISTENCE METHODS --------------
@@ -463,7 +473,8 @@ window.onload = function() {
 
     var scoreIsInTopRange = function(score) {
         var highScores = getHighScores();
-        return score > (highScores.last() || 0) || highScores.length < TOP_RANGE;
+        return score < highScores[0] || score > (highScores.last() || 0) 
+                || highScores.length < TOP_RANGE;
     };
 
     var storeNewHighScore = function(score) {
