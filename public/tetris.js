@@ -243,6 +243,7 @@ window.onload = function() {
     // -------------- PIECE ROTATION METHODS --------------
 
     var rotatePiece = function() {
+        if(Game.piece.locked) return;
         var rotatedPiece = {
             coordinates: Game.piece.coordinates.map(function(coord) {
                 return new Coordinate(0 - coord.x, coord.y)
