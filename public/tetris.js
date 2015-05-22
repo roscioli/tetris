@@ -114,6 +114,10 @@ window.onload = function() {
                 clearMessage();
                 return;
             }
+            
+            if([32, 37, 38, 39, 40].contains(e.keyCode)) {
+                e.preventDefault();
+            }
 
             switch (e.keyCode) {
                 case 37:
