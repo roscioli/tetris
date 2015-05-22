@@ -6,19 +6,11 @@ module.exports = function (grunt) {
 					"public/tetris.min.js": ["public/tetris.js"]
 				}
 			}
-		},
-		copy: {
-		  main: {
-		    files: [
-      			{expand: true, flatten: false, src: ["bower_components/**"], dest: "public", filter: "isFile"}
-		    ]
-		  }
 		}
 	});
 
 
-	grunt.registerTask("build", ["uglify", "copy"]);
+	grunt.registerTask("build", ["uglify"]);
 
 	grunt.loadNpmTasks("grunt-contrib-uglify");
-	grunt.loadNpmTasks("grunt-contrib-copy");
 };

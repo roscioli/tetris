@@ -66,7 +66,7 @@ window.onload = function() {
     var initializeGameVariables = function() {
         Game = {
             boardWidth: 10,
-            boardHeight: 15,
+            boardHeight: 16,
             time: Date.now(),
             timeout: 1000,
             levelSpeedup: 50,
@@ -76,7 +76,7 @@ window.onload = function() {
             score: 0,
             lines: 0,
             level: 1,
-            linesPerLevel: 10,
+            linesPerLevel: 4,
             matrix: [],
             piece: new Piece()
         };
@@ -109,7 +109,11 @@ window.onload = function() {
                 return;
             }
 
-            if(Game.gameOver) return;
+            if(Game.gameOver) {
+                startGame();
+                clearMessage();
+                return;
+            }
 
             switch (e.keyCode) {
                 case 37:
@@ -184,7 +188,7 @@ window.onload = function() {
     };
 
     var getTimeout = function() {
-        return Math.max(Game.timeout - ((Game.level-1) * Game.levelSpeedup), Game.levelSpeedup);
+        return Math.max(Game.timeout - ((Game.level - 1) * Game.levelSpeedup), Game.levelSpeedup);
     };
 
     var updateLevel = function() {
@@ -244,18 +248,19 @@ window.onload = function() {
 
     var rotatePiece = function() {
         if(Game.piece.locked) return;
+        var origHeight = getMaxYOfCoordinates(Game.piece.coordinates);
+        var origWidth = getMaxXOfCoordinates(Game.piece.coordinates);
+        var maxDim = Math.max(origWidth, origHeight);
         var rotatedPiece = {
             coordinates: Game.piece.coordinates.map(function(coord) {
                 return new Coordinate(0 - coord.x, coord.y)
             }),
-            x: Game.piece.x
-        }
-        var yOffset = getMaxXOfCoordinates(Game.piece.coordinates);
+            x: Game.piece.x// + Math.floor(maxDim / 2)
+        };
         rotatedPiece.coordinates = rotatedPiece.coordinates.map(function(coord) {
-            return new Coordinate(coord.y + yOffset, coord.x)
+            return new Coordinate(coord.y + origWidth, coord.x)
         });
-        var width = getMaxXOfCoordinates(rotatedPiece.coordinates);
-        while(rotatedPiece.x + width >= Game.boardWidth) rotatedPiece.x--;
+        while(rotatedPiece.x + origHeight >= Game.boardWidth) rotatedPiece.x--;
         var everyCoordinateIsValidAfterRotation = rotatedPiece.coordinates.every(function(coord) {
             return !spaceIsOffLimits(coord.y + Game.piece.y, coord.x + rotatedPiece.x)
         });
@@ -334,7 +339,7 @@ window.onload = function() {
 
         if(!params) params = {};
 
-        var blockSize = 30;
+        var blockSize = 28;
         var canvas = document.getElementById(params.htmlId || "tetris");
         canvas.width = blockSize * Game.boardWidth;
         canvas.height = blockSize * Game.boardHeight;
@@ -412,7 +417,6 @@ window.onload = function() {
                     if(topRowHasAStationaryPiece()) {
                         Game.gameOver = true;
                         alertUserOfGameOver();
-                        console.log("game over");
                         return;
                     }
                     generateNextPiece();
@@ -439,16 +443,24 @@ window.onload = function() {
     window.Game = Game;
 
     var alertUserOfGameOver = function() {
-        var message = "Game over"
+        var message = "Game over<br /><br />"
         if(storeNewHighScore(Game.score)) {
-            console.log(1);
-            message = "Highest zen achieved.";
+            message = "Highest zen achieved.<br /><br />";
         } else if(storeNewTopScore(Game.score)) {
-            console.log("Nice zen.");
+            message = "Nice zen.<br /><br />";
         }
         nextCanvas.hide();
-        document.getElementById("message").innerHTML = message;
-        console.log(message);
+        displayMessage(message + "Press any key to play again.");
+    };
+
+    // -------------- VIEW SET METHODS --------------
+
+    var displayMessage = function(msg) {
+        document.getElementById("message").innerHTML = msg;
+    };
+
+    var clearMessage = function() {
+        displayMessage("");
     };
 
     // -------------- SCORE PERSISTENCE METHODS --------------
