@@ -78,7 +78,9 @@ window.onload = function() {
             level: 1,
             linesPerLevel: 4,
             matrix: [],
-            piece: new Piece()
+            piece: new Piece(),
+            timeForNextGame: false,
+            message: []
         };
     };
 
@@ -109,7 +111,7 @@ window.onload = function() {
                 return;
             }
 
-            if(Game.gameOver) {
+            if(Game.gameOver && !!Game.timeForNextGame) {
                 startGame();
                 clearMessage();
                 return;
@@ -420,6 +422,7 @@ window.onload = function() {
                     removeCompletedRows();
                     if(topRowHasAStationaryPiece()) {
                         Game.gameOver = true;
+                        Game.timeForNextGame = false;
                         alertUserOfGameOver();
                         return;
                     }
@@ -447,24 +450,28 @@ window.onload = function() {
     window.Game = Game;
 
     var alertUserOfGameOver = function() {
-        var message = "Game over<br /><br />"
+        appendToMessage("Game over");
         if(storeNewHighScore(Game.score)) {
-            message = "Highest zen achieved.<br /><br />";
+            appendToMessage("Highest zen achieved.");
         } else if(storeNewTopScore(Game.score)) {
-            message = "Nice zen.<br /><br />";
+            appendToMessage("Nice zen.");
         }
         nextCanvas.hide();
-        displayMessage(message + "Press any key to play again.");
+        window.setTimeout(function() { 
+            Game.timeForNextGame = true; 
+            appendToMessage("Press any key to play a new game."); 
+        }, 1000);
     };
 
     // -------------- VIEW SET METHODS --------------
 
-    var displayMessage = function(msg) {
-        document.getElementById("message").innerHTML = msg;
+    var appendToMessage = function(msg) {
+        Game.message.push(msg);
+        document.getElementById("message").innerHTML = Game.message.join("<br/><br/>");
     };
 
     var clearMessage = function() {
-        displayMessage("");
+        document.getElementById("message").innerHTML = "";
     };
 
     // -------------- SCORE PERSISTENCE METHODS --------------
