@@ -182,7 +182,7 @@ window.onload = function() {
     };
 
     var createGestureHandler = function(handler) {
-        var timeIntervalForGesture = 40;
+        var timeIntervalForGesture = 70;
         (new Hammer(handler.element)).on(handler.gesture, function(event) {
             // if(handler.element === document.body) {
                 event.srcEvent.stopPropagation();
