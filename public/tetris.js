@@ -110,37 +110,90 @@ window.onload = function() {
     KEYACTIONS["40"] = function() { movePiece(MOVEMENT.down); }
     KEYACTIONS["default"] = function() { setPause(true); }
 
-    var handleValidGameGestures = function(keyCode) {
-        handleValidGameKeypress({keyCode: keyCode}, true);
+    var EVENT_HANDLERS = {
+        handlers: [{
+            keyCode: 32,
+            gesture: "panup",
+            preventDefault: true,
+            action: function() { console.log("dropping piece"); dropPiece(); },
+            element: document.getElementById("tetris")
+        },{
+            keyCode: 37,
+            gesture: "panleft",
+            preventDefault: true,
+            action: function() { movePiece(MOVEMENT.left); },
+            element: document.getElementById("tetris")
+        },{
+            keyCode: 38,
+            gesture: "tap",
+            preventDefault: true,
+            action: function() { console.log("rotating piece"); rotatePiece(); },
+            element: document.getElementById("tetris")
+        },{
+            keyCode: 39,
+            gesture: "panright",
+            preventDefault: true,
+            action: function() { movePiece(MOVEMENT.right); },
+            element: document.getElementById("tetris")
+        },{
+            keyCode: 40,
+            gesture: "pandown",
+            preventDefault: true,
+            action: function() { movePiece(MOVEMENT.down); },
+            element: document.getElementById("tetris")
+        }],
+        default: {
+            keyCode: "default",
+            gesture: "doubletap",
+            action: function() { togglePause(); console.log("PAUSE MOTHERFUCKER"); },
+            element: document.body
+        }
     };
 
     var handleValidGameKeypress = function(e, isGesture) {
-        var keyAction = KEYACTIONS[e.keyCode];
-        if(!!keyAction) {
-            if(!!isGesture) e.preventDefault();
-            keyAction();
+        var handler = EVENT_HANDLERS.handlers.filter(function(h) { return h.keyCode === e.keyCode; })[0];
+        console.log(JSON.stringify(handler));
+        if(!!handler) {
+            if(!!handler.preventDefault) e.preventDefault();
+            handler.action();
         } else {
-            KEYACTIONS.default();
+            EVENT_HANDLERS.default.action();
         }
     };
 
     var initializeEventHandlers = function() {
         document.onkeydown = function(e) {
             e = e || window.event;
-
             if(Game.paused) {
                 setPause(false);
                 return;
             }
-
             if(Game.gameOver && !!Game.timeForNextGame) {
                 startGame();
                 clearMessage();
                 return;
             }
-
             handleValidGameKeypress(e);
         };
+        EVENT_HANDLERS.handlers.forEach(function(handler) {
+            createGestureHandler(handler);
+        });
+        createGestureHandler(EVENT_HANDLERS.default);
+    };
+
+    var createGestureHandler = function(handler) {
+        var timeIntervalForGesture = 40;
+        (new Hammer(handler.element)).on(handler.gesture, function(event) {
+            // if(handler.element === document.body) {
+                event.srcEvent.stopPropagation();
+            // }
+            var now = Date.now();
+            if((!!handler.timeLastExecuted && now - handler.timeLastExecuted > timeIntervalForGesture)
+                || !handler.timeLastExecuted) {
+                handler.timeLastExecuted = now;
+                handler.action();
+            }
+        });
     };
 
     // -------------- BOARD VALIDATION METHODS --------------
@@ -339,6 +392,11 @@ window.onload = function() {
         Game.paused = toPauseOrNotToPause;
     };
 
+    var togglePause = function() {
+        Game.paused = !Game.paused;
+        console.log("in toggle and paused is: " + Game.paused);
+    };
+
     // -------------- DRAWING METHODS --------------
 
     var Canvas = function(params) {
@@ -524,36 +582,6 @@ window.onload = function() {
             addScoreToHighScores(score);
             return true;
         }
-    };
-
-    // -------------- GESTURE METHODS --------------
-
-    var initializeGestureRecognizers = function() {
-        var hammertime = new Hammer(document.body);
-        hammertime.get('swipe').set({ direction: Hammer.DIRECTION_LEFT });
-        hammertime.get('swipe').set({ direction: Hammer.DIRECTION_RIGHT });
-        hammertime.get('swipe').set({ direction: Hammer.DIRECTION_UP });
-        hammertime.get('swipe').set({ direction: Hammer.DIRECTION_DOWN });
-        hammertime.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
-        hammertime.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
-    };
-
-    var simulateKeypress = function() {
-        var keyboardEvent = document.createEvent("KeyboardEvent");
-        var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? "initKeyboardEvent" : "initKeyEvent";
-        keyboardEvent[initMethod](
-                           "keydown", // event type : keydown, keyup, keypress
-                            true, // bubbles
-                            true, // cancelable
-                            window, // viewArg: should be window
-                            false, // ctrlKeyArg
-                            false, // altKeyArg
-                            false, // shiftKeyArg
-                            false, // metaKeyArg
-                            40, // keyCodeArg : unsigned long the virtual key code, else 0
-                            0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
-        );
-        document.dispatchEvent(keyboardEvent);
     };
 
     // -------------- ARRAY PROTOTYPE EXTENSION METHODS --------------
