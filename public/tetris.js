@@ -102,6 +102,28 @@ window.onload = function() {
         return row;
     };
 
+    var KEYACTIONS = {};
+    KEYACTIONS["32"] = function() { dropPiece(); }
+    KEYACTIONS["37"] = function() { movePiece(MOVEMENT.left); }
+    KEYACTIONS["38"] = function() { rotatePiece(); }
+    KEYACTIONS["39"] = function() { movePiece(MOVEMENT.right); }
+    KEYACTIONS["40"] = function() { movePiece(MOVEMENT.down); }
+    KEYACTIONS["default"] = function() { setPause(true); }
+
+    var handleValidGameGestures = function(keyCode) {
+        handleValidGameKeypress({keyCode: keyCode}, true);
+    };
+
+    var handleValidGameKeypress = function(e, isGesture) {
+        var keyAction = KEYACTIONS[e.keyCode];
+        if(!!keyAction) {
+            if(!!isGesture) e.preventDefault();
+            keyAction();
+        } else {
+            KEYACTIONS.default();
+        }
+    };
+
     var initializeEventHandlers = function() {
         document.onkeydown = function(e) {
             e = e || window.event;
@@ -116,30 +138,8 @@ window.onload = function() {
                 clearMessage();
                 return;
             }
-            
-            if([32, 37, 38, 39, 40].contains(e.keyCode)) {
-                e.preventDefault();
-            }
 
-            switch (e.keyCode) {
-                case 37:
-                    movePiece(MOVEMENT.left);
-                    break;
-                case 38:
-                    rotatePiece();
-                    break;
-                case 39:
-                    movePiece(MOVEMENT.right);
-                    break;
-                case 40:
-                    movePiece(MOVEMENT.down);
-                    break;
-                case 32:
-                    dropPiece();
-                    break;
-                default :
-                    setPause(true);
-            }
+            handleValidGameKeypress(e);
         };
     };
 
@@ -524,6 +524,36 @@ window.onload = function() {
             addScoreToHighScores(score);
             return true;
         }
+    };
+
+    // -------------- GESTURE METHODS --------------
+
+    var initializeGestureRecognizers = function() {
+        var hammertime = new Hammer(document.body);
+        hammertime.get('swipe').set({ direction: Hammer.DIRECTION_LEFT });
+        hammertime.get('swipe').set({ direction: Hammer.DIRECTION_RIGHT });
+        hammertime.get('swipe').set({ direction: Hammer.DIRECTION_UP });
+        hammertime.get('swipe').set({ direction: Hammer.DIRECTION_DOWN });
+        hammertime.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
+        hammertime.get('swipe').set({ direction: Hammer.DIRECTION_VERTICAL });
+    };
+
+    var simulateKeypress = function() {
+        var keyboardEvent = document.createEvent("KeyboardEvent");
+        var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? "initKeyboardEvent" : "initKeyEvent";
+        keyboardEvent[initMethod](
+                           "keydown", // event type : keydown, keyup, keypress
+                            true, // bubbles
+                            true, // cancelable
+                            window, // viewArg: should be window
+                            false, // ctrlKeyArg
+                            false, // altKeyArg
+                            false, // shiftKeyArg
+                            false, // metaKeyArg
+                            40, // keyCodeArg : unsigned long the virtual key code, else 0
+                            0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+        );
+        document.dispatchEvent(keyboardEvent);
     };
 
     // -------------- ARRAY PROTOTYPE EXTENSION METHODS --------------
