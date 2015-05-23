@@ -179,7 +179,7 @@ window.onload = function() {
     // -------------- GAME UPKEEP: SCORE & LEVEL METHODS --------------
 
     var showScore = function() {
-        document.getElementById("score").innerHTML = Game.score;
+        document.getElementById("score").innerHTML = "zen: " + Game.score;
     };
 
     var updateScore = function() {
@@ -436,34 +436,46 @@ window.onload = function() {
         }, getTimeout());
     };
 
-    var startGame = function() {
+    var initializeGame = function() {
         initializeGameVariables();
         gameCanvas.initializeCanvas();
         loadEmptyBoard();
         initializeEventHandlers();
+    };
+
+    var startGame = function() {
+        initializeGame();
         generateFirstPiece();
         game();
     };
 
+    initializeGame();
     startGame();
 
     window.Game = Game;
 
     var alertUserOfGameOver = function() {
-        appendToMessage("Game over");
+        appendToMessage("Game over.");
         if(storeNewHighScore(Game.score)) {
             appendToMessage("Highest zen achieved.");
         } else if(storeNewTopScore(Game.score)) {
             appendToMessage("Nice zen.");
         }
         nextCanvas.hide();
-        window.setTimeout(function() { 
-            Game.timeForNextGame = true; 
-            appendToMessage("Press any key to play a new game."); 
-        }, 1000);
+        window.setTimeout(promptUserForNewGame, 1000);
     };
 
-    // -------------- VIEW SET METHODS --------------
+    // -------------- MESSAGE SET METHODS --------------
+
+    var promptUserForNewGame = function() {
+        Game.timeForNextGame = true; 
+        var msg = "Press any key to start a new game.";
+        appendToMessage(msg);
+    };
+
+    var displayMessage = function(msg) {
+        document.getElementById("message").innerHTML = Game.message.join("<br/><br/>");
+    };
 
     var appendToMessage = function(msg) {
         Game.message.push(msg);
