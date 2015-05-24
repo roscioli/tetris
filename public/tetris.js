@@ -60,7 +60,7 @@ window.onload = function() {
         left: { axis: "x", addition: -1}
     };
 
-    // -------------- INITIALIZER METHODS --------------
+    // -------------- GAME INITIALIZER METHODS --------------
 
 
     var initializeGameVariables = function() {
@@ -102,20 +102,14 @@ window.onload = function() {
         return row;
     };
 
-    var KEYACTIONS = {};
-    KEYACTIONS["32"] = function() { dropPiece(); }
-    KEYACTIONS["37"] = function() { movePiece(MOVEMENT.left); }
-    KEYACTIONS["38"] = function() { rotatePiece(); }
-    KEYACTIONS["39"] = function() { movePiece(MOVEMENT.right); }
-    KEYACTIONS["40"] = function() { movePiece(MOVEMENT.down); }
-    KEYACTIONS["default"] = function() { setPause(true); }
+    //  -------------- EVENT HANDLER METHODS --------------
 
     var EVENT_HANDLERS = {
         handlers: [{
             keyCode: 32,
-            gesture: "panup",
+            gesture: "press",
             preventDefault: true,
-            action: function() { console.log("dropping piece"); dropPiece(); },
+            action: function() { dropPiece(); },
             element: document.getElementById("tetris")
         },{
             keyCode: 37,
@@ -127,7 +121,14 @@ window.onload = function() {
             keyCode: 38,
             gesture: "tap",
             preventDefault: true,
-            action: function() { console.log("rotating piece"); rotatePiece(); },
+            action: function() {
+                if(Game.gameOver && !!Game.timeForNextGame) {
+                    startGame();
+                    clearMessage();
+                    return;
+                }
+                rotatePiece();
+            },
             element: document.getElementById("tetris")
         },{
             keyCode: 39,
@@ -144,8 +145,8 @@ window.onload = function() {
         }],
         default: {
             keyCode: "default",
-            gesture: "doubletap",
-            action: function() { togglePause(); console.log("PAUSE MOTHERFUCKER"); },
+            gesture: "pinch",
+            action: function() { togglePause(); },
             element: document.body
         }
     };
@@ -182,11 +183,8 @@ window.onload = function() {
     };
 
     var createGestureHandler = function(handler) {
-        var timeIntervalForGesture = 70;
+        var timeIntervalForGesture = 90;
         (new Hammer(handler.element)).on(handler.gesture, function(event) {
-            // if(handler.element === document.body) {
-                event.srcEvent.stopPropagation();
-            // }
             var now = Date.now();
             if((!!handler.timeLastExecuted && now - handler.timeLastExecuted > timeIntervalForGesture)
                 || !handler.timeLastExecuted) {
@@ -306,7 +304,7 @@ window.onload = function() {
     // -------------- PIECE ROTATION METHODS --------------
 
     var rotatePiece = function() {
-        if(Game.piece.locked) return;
+        if(Game.piece.locked || Game.paused) return;
         var origHeight = getMaxYOfCoordinates(Game.piece.coordinates);
         var origWidth = getMaxXOfCoordinates(Game.piece.coordinates);
         var maxDim = Math.max(origWidth, origHeight);
@@ -334,7 +332,7 @@ window.onload = function() {
     // -------------- PIECE MOVEMENT METHODS --------------
 
     var movePiece = function(movement) {
-        if(Game.piece.locked) return;
+        if(Game.piece.locked || Game.paused) return;
         if(!pieceHasReachedAnEnd(movement)) {
             clearPiece();
             Game.piece[movement.axis] += movement.addition;
@@ -343,6 +341,7 @@ window.onload = function() {
     };
 
     var dropPiece = function() {
+        if(Game.paused) return;
         while(!pieceHasReachedAnEnd(MOVEMENT.down)) {
             clearPiece();
             Game.piece.y++;
