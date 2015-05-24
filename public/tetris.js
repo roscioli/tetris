@@ -526,7 +526,7 @@ window.onload = function() {
 
     var promptUserForNewGame = function() {
         Game.timeForNextGame = true; 
-        var msg = "Press any key to start a new game.";
+        var msg = "Click the board to start a new game.";
         appendToMessage(msg);
     };
 
