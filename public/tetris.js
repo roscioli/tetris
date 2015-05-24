@@ -60,6 +60,16 @@ window.onload = function() {
         left: { axis: "x", addition: -1}
     };
 
+    // -------------- DOM ACCESSOR METHODS --------------
+
+    var getTetris = function() {
+        return document.getElementById("tetris");
+    };
+
+    var getMessage = function() {
+        return document.getElementById("message");
+    };
+
     // -------------- GAME INITIALIZER METHODS --------------
 
 
@@ -110,13 +120,13 @@ window.onload = function() {
             gesture: "press",
             preventDefault: true,
             action: function() { dropPiece(); },
-            element: document.getElementById("tetris")
+            element: getTetris()
         },{
             keyCode: 37,
             gesture: "panleft",
             preventDefault: true,
             action: function() { movePiece(MOVEMENT.left); },
-            element: document.getElementById("tetris")
+            element: getTetris()
         },{
             keyCode: 38,
             gesture: "tap",
@@ -129,19 +139,19 @@ window.onload = function() {
                 }
                 rotatePiece();
             },
-            element: document.getElementById("tetris")
+            element: getTetris()
         },{
             keyCode: 39,
             gesture: "panright",
             preventDefault: true,
             action: function() { movePiece(MOVEMENT.right); },
-            element: document.getElementById("tetris")
+            element: getTetris()
         },{
             keyCode: 40,
             gesture: "pandown",
             preventDefault: true,
             action: function() { movePiece(MOVEMENT.down); },
-            element: document.getElementById("tetris")
+            element: getTetris()
         }],
         default: {
             keyCode: "default",
@@ -153,7 +163,6 @@ window.onload = function() {
 
     var handleValidGameKeypress = function(e, isGesture) {
         var handler = EVENT_HANDLERS.handlers.filter(function(h) { return h.keyCode === e.keyCode; })[0];
-        console.log(JSON.stringify(handler));
         if(!!handler) {
             if(!!handler.preventDefault) e.preventDefault();
             handler.action();
@@ -252,7 +261,7 @@ window.onload = function() {
         var newlyCalculatedLevel = getLevel();
         if(newlyCalculatedLevel > Game.level) {
             Game.level = newlyCalculatedLevel;
-            console.log("  level: " + Game.level);
+            console.log("level: " + Game.level);
             console.log("timeout: " + getTimeout());
         }
     };
@@ -393,7 +402,6 @@ window.onload = function() {
 
     var togglePause = function() {
         Game.paused = !Game.paused;
-        console.log("in toggle and paused is: " + Game.paused);
     };
 
     // -------------- DRAWING METHODS --------------
@@ -403,7 +411,7 @@ window.onload = function() {
         if(!params) params = {};
 
         var blockSize = 28;
-        var canvas = document.getElementById(params.htmlId || "tetris");
+        var canvas = document.getElementById(params.htmlId);
         canvas.width = blockSize * Game.boardWidth;
         canvas.height = blockSize * Game.boardHeight;
         var context = canvas.getContext("2d");
@@ -458,7 +466,7 @@ window.onload = function() {
         };
     };
 
-    var gameCanvas = new Canvas();
+    var gameCanvas = new Canvas({htmlId: "tetris"});
     var nextCanvas = new Canvas({
         htmlId: "next", 
         backgroundColor: "#FFF"
@@ -531,16 +539,16 @@ window.onload = function() {
     };
 
     var displayMessage = function(msg) {
-        document.getElementById("message").innerHTML = Game.message.join("<br/><br/>");
+        getMessage().innerHTML = Game.message.join("<br/><br/>");
     };
 
     var appendToMessage = function(msg) {
         Game.message.push(msg);
-        document.getElementById("message").innerHTML = Game.message.join("<br/><br/>");
+        getMessage().innerHTML = Game.message.join("<br/><br/>");
     };
 
     var clearMessage = function() {
-        document.getElementById("message").innerHTML = "";
+        getMessage().innerHTML = "";
     };
 
     // -------------- SCORE PERSISTENCE METHODS --------------
