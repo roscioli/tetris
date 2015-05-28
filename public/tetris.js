@@ -601,7 +601,7 @@ window.onload = function() {
         return this.indexOf(x) >= 0;
     };
 
-    Array.prototype.sortNumbers = function(array) {
+    Array.prototype.sortNumbers = function() {
         return this.sort(function(a, b) { return a - b; });
     };
 };
